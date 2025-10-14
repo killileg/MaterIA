@@ -1,0 +1,92 @@
+{
+  "OCE": {
+    "Regions": "Oceania"
+  },
+  "RAF": {
+    "Regions": "Africa"
+  },
+  "RAS": {
+    "Regions": "Asia"
+  },
+  "RER": {
+    "Regions": "Europe"
+  },
+  "RLA": {
+    "Regions": "Americas"
+  },
+  "RNA": {
+    "Regions": "Americas"
+  },
+  "RNE": {
+    "Regions": "Asia"
+  },
+  "RME": {
+    "Regions": "Asia"
+  },
+  "EU-15": {
+    "Regions": "Europe"
+  },
+  "EU-NMC": {
+    "Regions": "Europe"
+  },
+  "EU-25": {
+    "Regions": "Europe"
+  },
+  "EC-CC": {
+    "Regions": "Europe"
+  },
+  "EU-25&CC": {
+    "Regions": "Europe"
+  },
+  "EU-AC": {
+    "Regions": "Europe"
+  },
+  "EU-25&CC&AC": {
+    "Regions": "Europe"
+  },
+  "EU-27": {
+    "Regions": "Europe"
+  },
+  "EU": {
+    "Regions": "Europe"
+  },
+  "Europe": {
+    "Regions": "Europe"
+  },
+  "WEU": {
+    "Regions": "Europe"
+  },
+  "PAO": {
+    "Regions": "Asia"
+  },
+  "FSU": {
+    "Regions": "Europe"
+  },
+  "EEU": {
+    "Regions": "Europe"
+  },
+  "MEA": {
+    "Regions": "Africa"
+  },
+  "AFR": {
+    "Regions": "Africa"
+  },
+  "CPA": {
+    "Regions": "Asia"
+  },
+  "PAS": {
+    "Regions": "Asia"
+  },
+  "SAS": {
+    "Regions": "Asia"
+  },
+  "UCTE": {
+    "Regions": "Europe"
+  },
+  "CENTREL": {
+    "Regions": "Europe"
+  },
+  "NORDEL": {
+    "Regions": "Europe"
+  }
+}
