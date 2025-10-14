@@ -22,6 +22,6 @@ repos:
     hooks:
       - id: pytest-with-coverage
         name: Run Pytest with Coverage
-        entry: pytest --cov=src --cov-report=term-missing
+        entry: pytest --cov=materia --cov-report=term-missing
         language: system
-        types: [python]
+        pass_filenames: false
