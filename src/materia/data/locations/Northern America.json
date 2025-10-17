@@ -1,0 +1,13 @@
+{
+  "Name": "Northern America",
+  "Class": "Sub-region",
+  "Parent": "Americas",
+  "Children": [
+    "BMU",
+    "CAN",
+    "GRL",
+    "SPM",
+    "USA",
+    "Northern America"
+  ]
+}

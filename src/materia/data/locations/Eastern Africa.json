@@ -1,0 +1,30 @@
+{
+  "Name": "Eastern Africa",
+  "Class": "Sub-region",
+  "Parent": "Africa",
+  "Children": [
+    "ATF",
+    "BDI",
+    "COM",
+    "DJI",
+    "ERI",
+    "ETH",
+    "IOT",
+    "KEN",
+    "MDG",
+    "MOZ",
+    "MUS",
+    "MWI",
+    "MYT",
+    "REU",
+    "RWA",
+    "SOM",
+    "SSD",
+    "SYC",
+    "TZA",
+    "UGA",
+    "ZMB",
+    "ZWE",
+    "Eastern Africa"
+  ]
+}

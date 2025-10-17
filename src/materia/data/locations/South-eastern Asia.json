@@ -1,0 +1,19 @@
+{
+  "Name": "South-eastern Asia",
+  "Class": "Sub-region",
+  "Parent": "Asia",
+  "Children": [
+    "BRN",
+    "IDN",
+    "KHM",
+    "LAO",
+    "MMR",
+    "MYS",
+    "PHL",
+    "SGP",
+    "THA",
+    "TLS",
+    "VNM",
+    "South-eastern Asia"
+  ]
+}

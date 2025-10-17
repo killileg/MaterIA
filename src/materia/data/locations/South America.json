@@ -1,0 +1,24 @@
+{
+  "Name": "South America",
+  "Class": "Sub-region",
+  "Parent": "Americas",
+  "Children": [
+    "ARG",
+    "BOL",
+    "BRA",
+    "BVT",
+    "CHL",
+    "COL",
+    "ECU",
+    "FLK",
+    "GUF",
+    "GUY",
+    "PER",
+    "PRY",
+    "SGS",
+    "SUR",
+    "URY",
+    "VEN",
+    "South America"
+  ]
+}

@@ -3,42 +3,17 @@ from typing import Optional, List, Dict, Tuple
 from enum import Enum
 import numpy as np
 
-_TOL_ABS = 1e-8
-_TOL_REL = 1e-5
-_REL_DEC = 8
-
-QUANTITIES = ("mass", "volume", "surface", "length", "unit_count")
-
-PROPERTIES = (
-    "gross_density",
-    "grammage",
-    "linear_density",
-    "layer_thickness",
-    "cross_sectional_area",
-    "weight_per_piece",
+from materia.core.constants import (
+    NAME_TO_IDX,
+    IDX_TO_NAME,
+    REL,
+    VARS,
+    QUANTITIES,
+    _TOL_ABS,
+    _TOL_REL,
+    _REL_DEC,
+    ACCEPTED_RESCALINGS,
 )
-
-ACCEPTED_RESCALINGS = [
-    {"mass"},
-    {"volume"},
-    {"surface", "layer_thickness"},
-]
-
-VARS = QUANTITIES + PROPERTIES
-
-NAME_TO_IDX = {name: i for i, name in enumerate(VARS)}
-IDX_TO_NAME = {v: k for k, v in NAME_TO_IDX.items()}
-
-REL: List[Tuple[str, List[str]]] = [
-    ("mass", ["volume", "gross_density"]),
-    ("mass", ["surface", "grammage"]),
-    ("mass", ["length", "linear_density"]),
-    ("mass", ["unit_count", "weight_per_piece"]),
-    ("volume", ["surface", "layer_thickness"]),
-    ("volume", ["length", "cross_sectional_area"]),
-    ("grammage", ["layer_thickness", "gross_density"]),
-    ("linear_density", ["cross_sectional_area", "gross_density"]),
-]
 
 
 class RuleMode(str, Enum):

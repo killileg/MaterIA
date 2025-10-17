@@ -1,0 +1,18 @@
+{
+  "Name": "Polynesia",
+  "Class": "Sub-region",
+  "Parent": "Oceania",
+  "Children": [
+    "ASM",
+    "COK",
+    "NIU",
+    "PCN",
+    "PYF",
+    "TKL",
+    "TON",
+    "TUV",
+    "WLF",
+    "WSM",
+    "Polynesia"
+  ]
+}

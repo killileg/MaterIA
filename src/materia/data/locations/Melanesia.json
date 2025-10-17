@@ -1,0 +1,13 @@
+{
+  "Name": "Melanesia",
+  "Class": "Sub-region",
+  "Parent": "Oceania",
+  "Children": [
+    "FJI",
+    "NCL",
+    "PNG",
+    "SLB",
+    "VUT",
+    "Melanesia"
+  ]
+}

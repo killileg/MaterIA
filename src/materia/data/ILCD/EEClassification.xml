@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CategorySystem xmlns="http://lca.jrc.it/ILCD/Categories"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                name="EE"
+                xsi:schemaLocation="http://lca.jrc.it/ILCD/Categories ../schemas/ILCD_Categories.xsd">
+  <categories dataType="Process">
+    <category id="1" name="Cablage, distribution electrique, reseaux">
+      <category id="1.1" name="Autres fils et cables, bus">
+        <category id="1.1.0" name="Autres cables et bus"/>
+        <category id="1.1.1" name="Autres elements de reseaux et bus"/>
+      </category>
+      <category id="1.2" name="Reseaux de donnees">
+        <category id="1.2.0" name="Cables de reseaux de donnees"/>
+      </category>
+      <category id="1.3" name="Reseaux electriques basse tension">
+        <category id="1.3.0" name="Accessoires, disjoncteurs, compteurs BT"/>
+        <category id="1.3.1" name="Armoire electrique (contenant) BT"/>
+        <category id="1.3.2" name="Cablage electrique BT"/>
+        <category id="1.3.3" name="Conducteurs electriques internes armoires electrique BT"/>
+      </category>
+      <category id="1.4" name="Reseaux electriques moyenne et haute tension">
+        <category id="1.4.0" name="Cablage moyenne tension"/>
+        <category id="1.4.1" name="Tableaux electriques moyenne et haute tension + accessoires"/>
+      </category>
+      <category id="1.5" name="Solutions de cheminement des cables">
+        <category id="1.5.0" name="Chemins de cables, echelles a cables, ..."/>
+      </category>
+    </category>
+    <category id="2" name="Equipements electriques, electroniques et de genie climatique">
+      <category id="2.1" name="Appareillage d’installation pour les reseaux d’energie electrique et de communication">
+        <category id="2.1.0" name="Accessoires reseaux, patch-panel, switch, routeurs"/>
+        <category id="2.1.1" name="Appareillage electrique mural, prises, interrupteurs"/>
+        <category id="2.1.2" name="Appareillage reseaux mural, prises"/>
+        <category id="2.1.3" name="Cameras, bornes de controle d'acces"/>
+        <category id="2.1.4" name="Detecteurs, capteurs, senseurs, bouton poussoir, etc"/>
+        <category id="2.1.5" name="Divers appareillage"/>
+        <category id="2.1.6" name="Ecrans tactiles, videophones, etc"/>
+        <category id="2.1.7" name="Equipements de domotique, modules KNX, etc"/>
+      </category>
+      <category id="2.2" name="Equipements d'eau potable">
+        <category id="2.2.0" name="Production d’eau chaude sanitaire"/>
+        <category id="2.2.1" name="Traitement de l'eau"/>
+      </category>
+      <category id="2.3" name="Equipements de genie climatique">
+        <category id="2.3.0" name="Chauffage a energie electrique directe"/>
+        <category id="2.3.1" name="Divers"/>
+        <category id="2.3.2" name="Equipements de production de chaleur et/ou de froid hydrauliques"/>
+        <category id="2.3.3" name="Equipements de production de chaud et froid directs decentralises (split)"/>
+        <category id="2.3.4" name="Equipements emetteurs de chaud et/ou de froid hydrauliques (ventilo-convecteur, plafonds rayonnant, radiateurs, etc)"/>
+        <category id="2.3.5" name="Pompes et elements electriques divers de reseaux hydrauliques"/>
+        <category id="2.3.6" name="Unites de ventilation, centrale de traitement d'air"/>
+        <category id="2.3.7" name="Ventilateurs et elements electriques divers de reseaux aerauliques"/>
+      </category>
+      <category id="2.4" name="Equipements de securite">
+        <category id="2.4.0" name="Securite incendie (RIA, extincteurs, sprinkler hors tuyaux, ...)"/>
+        <category id="2.4.1" name="Systeme d'alarme anti-intrusion"/>
+      </category>
+      <category id="2.5" name="Infrastructures de recharge pour vehicules electriques (IRVE)">
+        <category id="2.5.0" name="Bornes privees ou semi-publiques"/>
+        <category id="2.5.1" name="Bornes sur pied publiques"/>
+        <category id="2.5.2" name="Socles de prise"/>
+      </category>
+      <category id="2.6" name="Materiel d’eclairage">
+        <category id="2.6.0" name="Materiels pour l’eclairage exterieur et leurs alimentations"/>
+        <category id="2.6.1" name="Materiels pour l’eclairage interieur et leurs alimentations"/>
+        <category id="2.6.2" name="Systeme d’eclairage de securite"/>
+      </category>
+      <category id="2.7" name="Production locale d’energie electrique">
+        <category id="2.7.0" name="Conversion et regulation"/>
+        <category id="2.7.1" name="Divers Production d'energie"/>
+        <category id="2.7.2" name="Generateur d’electricite"/>
+        <category id="2.7.3" name="Monitoring"/>
+        <category id="2.7.4" name="Stockage"/>
+      </category>
+      <category id="2.8" name="Transport de personnes ou de marchandises dans le batiment">
+        <category id="2.8.0" name="Ascenseurs ou elevateurs"/>
+        <category id="2.8.1" name="Escaliers mecaniques ou trottoirs roulants"/>
+      </category>
+    </category>
+    <category id="3" name="Produits de construction">
+      <category id="3.1" name="Agregats, remblais, sables, substrats">
+        <category id="3.1.0" name="Agregats de beton recycles"/>
+        <category id="3.1.1" name="Concasses"/>
+        <category id="3.1.2" name="Sable"/>
+        <category id="3.1.3" name="Substrat pour toiture vegetale"/>
+      </category>
+      <category id="3.2" name="Autres produits de construction">
+        <category id="3.2.0" name="Autres produits non repertories ailleurs"/>
+        <category id="3.2.1" name="Elements composes non repris ailleurs"/>
+        <category id="3.2.2" name="Elements prefabriques non repris ailleurs"/>
+        <category id="3.2.3" name="Produits d'origine biosourcee"/>
+        <category id="3.2.4" name="Produits metalliques"/>
+        <category id="3.2.5" name="Produits mineraux"/>
+      </category>
+      <category id="3.3" name="Enduits et peintures">
+        <category id="3.3.0" name="Autres sous-couches, primaires, produits de preparation liquides"/>
+        <category id="3.3.1" name="Enduit de finition exterieur"/>
+        <category id="3.3.2" name="Enduit de finition interieur"/>
+        <category id="3.3.3" name="Peinture"/>
+        <category id="3.3.4" name="Vernis"/>
+      </category>
+      <category id="3.4" name="Equipements sanitaires, de salles d’eau et de cuisine">
+        <category id="3.4.0" name="Baignoire"/>
+        <category id="3.4.1" name="Evier"/>
+        <category id="3.4.2" name="Lavabo"/>
+        <category id="3.4.3" name="Meuble"/>
+        <category id="3.4.4" name="Plan vasque"/>
+        <category id="3.4.5" name="Receveur de douche"/>
+        <category id="3.4.6" name="Robinetterie et colonnes de douche"/>
+        <category id="3.4.7" name="Salle d’eau prefabriquee"/>
+        <category id="3.4.8" name="WC - Toilette - Cuvette"/>
+      </category>
+      <category id="3.5" name="Isolation thermique et acoustique">
+        <category id="3.5.0" name="Coffrage isolant"/>
+        <category id="3.5.1" name="Divers Isolations"/>
+        <category id="3.5.2" name="Isolation a base de materiaux biosources rigide"/>
+        <category id="3.5.3" name="Isolation a base de materiaux biosources souple"/>
+        <category id="3.5.4" name="Isolation a base de verre recycle"/>
+        <category id="3.5.5" name="Isolation minerale rigide"/>
+        <category id="3.5.6" name="Isolation minerale souple"/>
+        <category id="3.5.7" name="Isolation synthetique (PUR, PIR, XPS, EPS, Phenol, ...)"/>
+        <category id="3.5.8" name="Revetement 10 mm en fibre de bois cimentee pour protection au feu (Heraklith)"/>
+        <category id="3.5.9" name="Sous-couche acoustique en rouleaux"/>
+      </category>
+      <category id="3.6" name="Membranes / films / toiles">
+        <category id="3.6.0" name="Autres produits d’etancheite et d’impermeabilisation"/>
+        <category id="3.6.1" name="Autres types de membranes"/>
+        <category id="3.6.2" name="Membrane EPDM"/>
+        <category id="3.6.3" name="Membrane bitumineuse"/>
+        <category id="3.6.4" name="Membrane en PVC / PP / PE"/>
+      </category>
+      <category id="3.7" name="Menuiseries interieures et exterieures / serrurerie">
+        <category id="3.7.0" name="Cloison interieure prefabriquee mobile / amovible"/>
+        <category id="3.7.1" name="Divers Menuiseries"/>
+        <category id="3.7.2" name="Echelles a crinoline, passerelles metalliques"/>
+        <category id="3.7.3" name="Fenetres / portes fenetres"/>
+        <category id="3.7.4" name="Fenetres de toit, verrieres, coupoles"/>
+        <category id="3.7.5" name="Gardes corps"/>
+        <category id="3.7.6" name="Mur rideau, facade montants/traverses"/>
+        <category id="3.7.7" name="Portes exterieurs, portes coulissantes, portes tambours"/>
+        <category id="3.7.8" name="Portes interieures"/>
+        <category id="3.7.9" name="Volets / volets roulants / persiennes / stores / brise-soleil"/>
+      </category>
+      <category id="3.8" name="Panneaux de construction / finition / bardage / toiture">
+        <category id="3.8.0" name="Autres panneaux de construction/finition"/>
+        <category id="3.8.1" name="Bois de coffrage"/>
+        <category id="3.8.2" name="Panneau coupe-feu"/>
+        <category id="3.8.3" name="Panneaux prefabrique contenant de l'isolant (panneau sandwich)"/>
+        <category id="3.8.4" name="Produits a base de bois ou produits biosources"/>
+        <category id="3.8.5" name="Produits a base de ciment"/>
+        <category id="3.8.6" name="Produits a base de pierre naturelle (gres, granit, schiste, etc)"/>
+        <category id="3.8.7" name="Produits a base de platre"/>
+        <category id="3.8.8" name="Produits a base de terre cuite"/>
+        <category id="3.8.9" name="Produits metalliques (alu, acier, zinc, etc)"/>
+      </category>
+      <category id="3.9" name="Produits de mise en œuvre et fixation">
+        <category id="3.9.0" name="Elements de fixation et de montage autres"/>
+        <category id="3.9.1" name="Elements de fixation et de montage metalliques (vis, suspentes, equerres, profils)"/>
+        <category id="3.9.2" name="Mastics et mousses polyurethanes (hors jointoiement)"/>
+        <category id="3.9.3" name="Produits de collage, fixation et scellement"/>
+        <category id="3.9.4" name="Produits de jointoiement"/>
+        <category id="3.9.5" name="Produits de preparation et reparation"/>
+      </category>
+      <category id="3.10" name="Revetements des sols et murs /  produits de decoration">
+        <category id="3.10.0" name="Autres produits de revetement"/>
+        <category id="3.10.1" name="Faux planchers techniques"/>
+        <category id="3.10.2" name="Plinthes / moulures / decorations"/>
+        <category id="3.10.3" name="Produits a base de platre"/>
+        <category id="3.10.4" name="Revetements a base de bois"/>
+        <category id="3.10.5" name="Revetements mineral"/>
+        <category id="3.10.6" name="Revetements souples (moquettes, papier peint, tissus)"/>
+      </category>
+      <category id="3.11" name="Structure / maconnerie / gros œuvre / charpente">
+        <category id="3.11.0" name="Armatures, treillis soudes et fibres de renforcement"/>
+        <category id="3.11.1" name="Autres produits a base de ciment, chapes"/>
+        <category id="3.11.2" name="Beton coule en place"/>
+        <category id="3.11.3" name="Divers Structure"/>
+        <category id="3.11.4" name="Elements structurels / porteurs en acier"/>
+        <category id="3.11.5" name="Elements structurels / porteurs en beton"/>
+        <category id="3.11.6" name="Elements structurels / porteurs en bois"/>
+        <category id="3.11.7" name="Escaliers (interieur et exterieur)"/>
+        <category id="3.11.8" name="Maconnerie autres"/>
+        <category id="3.11.9" name="Maconnerie isolante (&lt; 0,30 W/mK)"/>
+        <category id="3.11.10" name="Maconnerie portante en beton"/>
+      </category>
+      <category id="3.12" name="Voirie et amenagements exterieurs de la parcelle">
+        <category id="3.12.0" name="Chambres d’acces ou de tirage"/>
+        <category id="3.12.1" name="Clotures"/>
+        <category id="3.12.2" name="Cuves et reservoirs"/>
+        <category id="3.12.3" name="Divers Voirie et amenagements"/>
+        <category id="3.12.4" name="Elements de voirie"/>
+        <category id="3.12.5" name="Mats et poteaux de voirie (sans luminaire)"/>
+        <category id="3.12.6" name="Revetements de voirie"/>
+        <category id="3.12.7" name="Systeme de drainage"/>
+        <category id="3.12.8" name="Systemes d’assainissement"/>
+      </category>
+    </category>
+    <category id="4" name="Reseaux de fluides, air, gaz, vapeur">
+      <category id="4.1" name="Accessoires de reseaux de ventilation">
+        <category id="4.1.0" name="Autres accessoires de reseaux de ventilation"/>
+        <category id="4.1.1" name="Grilles, bouches, clapets"/>
+      </category>
+      <category id="4.2" name="Accessoires de reseaux hydrauliques">
+        <category id="4.2.0" name="Autres accessoires de reseaux passifs"/>
+        <category id="4.2.1" name="Vannes/robinet/clapets"/>
+      </category>
+      <category id="4.3" name="Autres equipements techniques">
+        <category id="4.3.0" name="Autre equipements non repertories ailleurs"/>
+      </category>
+      <category id="4.4" name="Conduits de cheminee + accessoires">
+        <category id="4.4.0" name="Accessoires cheminee"/>
+        <category id="4.4.1" name="Tuyaux, coudes, elements de cheminee"/>
+      </category>
+      <category id="4.5" name="Gaines carree et circulaires pour ventilation">
+        <category id="4.5.0" name="Gaines carrees / rectangulaires en acier"/>
+        <category id="4.5.1" name="Gaines souples en polymeres"/>
+        <category id="4.5.2" name="Gaines spiralees en acier"/>
+      </category>
+      <category id="4.6" name="Isolation thermique des tuyauteries et gaines">
+        <category id="4.6.0" name="Isolation minerale pour tuyauteries avec protection en acier"/>
+        <category id="4.6.1" name="Isolation synthetique pour tuyauteries"/>
+      </category>
+      <category id="4.7" name="Tuyauterie PVC/PP">
+        <category id="4.7.0" name="Tuyaux, coudes, elements de reseaux PVC/PP"/>
+      </category>
+      <category id="4.8" name="Tuyauterie Zinc">
+        <category id="4.8.0" name="Tuyaux, coudes, elements de reseaux Zinc"/>
+      </category>
+      <category id="4.9" name="Tuyauterie acier">
+        <category id="4.9.0" name="Tuyaux, coudes, elements de reseaux acier"/>
+      </category>
+      <category id="4.10" name="Tuyauterie inox">
+        <category id="4.10.0" name="Tuyaux, coudes, elements de reseaux inox"/>
+      </category>
+      <category id="4.11" name="Tuyauterie multicouche">
+        <category id="4.11.0" name="Tuyaux, coudes, elements de reseaux multicouche"/>
+      </category>
+      <category id="4.12" name="Tuyauteries autres">
+        <category id="4.12.0" name="Tuyaux, coudes, elements de reseaux autres"/>
+      </category>
+    </category>
+  </categories>
+</CategorySystem>

@@ -1,0 +1,26 @@
+{
+  "Name": "Western Asia",
+  "Class": "Sub-region",
+  "Parent": "Asia",
+  "Children": [
+    "ARE",
+    "ARM",
+    "AZE",
+    "BHR",
+    "CYP",
+    "GEO",
+    "IRQ",
+    "ISR",
+    "JOR",
+    "KWT",
+    "LBN",
+    "OMN",
+    "PSE",
+    "QAT",
+    "SAU",
+    "SYR",
+    "TUR",
+    "YEM",
+    "Western Asia"
+  ]
+}

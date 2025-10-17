@@ -1,0 +1,17 @@
+{
+  "Name": "Western Europe",
+  "Class": "Sub-region",
+  "Parent": "Europe",
+  "Children": [
+    "AUT",
+    "BEL",
+    "CHE",
+    "DEU",
+    "FRA",
+    "LIE",
+    "LUX",
+    "MCO",
+    "NLD",
+    "Western Europe"
+  ]
+}

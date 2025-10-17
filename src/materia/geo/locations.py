@@ -1,10 +1,7 @@
-from pathlib import Path
 import pycountry
 
-from materia.io.files import read_json_file
-from materia.io.paths import LOCATIONS_FOLDER
+from materia.resources import get_location_data
 from materia.resources import get_regions_mapping
-from materia.core.errors import LocationNotFoundError
 
 
 def ilcd_to_iso_location(ilcd_code):
@@ -19,10 +16,8 @@ def ilcd_to_iso_location(ilcd_code):
 
 def get_location_attribute(location_code: str, attribute: str):
     """Returns a specific attribute from a location JSON file."""
-    loc_file = Path(LOCATIONS_FOLDER) / f"{location_code}.json"
-    if not loc_file.exists():
-        raise LocationNotFoundError(loc_file)
-    return (read_json_file(loc_file) or {}).get(attribute)
+    location_data = get_location_data(location_code).get(attribute)
+    return (location_data or {}).get(attribute)
 
 
 def escalate_location_set(location_set):

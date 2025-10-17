@@ -1,3 +1,16 @@
+from typing import List, Tuple
+
+
+# ----------------------------- TRADE ----------------------------------------
+
+TRADE_YEARS = [str(y) for y in range(2020, 2025)]
+TRADE_TARGET = "442"  # Luxembourg
+TRADE_FLOW = "M"  # Imports
+TRADE_ROW_REGIONS = {"E19", "S19", "E27", "OED", "EUU", "EEC", "ROW", "_X "}
+
+# ----------------------------- ILCD -----------------------------------------
+
+
 NS = {
     "proc": "http://lca.jrc.it/ILCD/Process",
     "common": "http://lca.jrc.it/ILCD/Common",
@@ -67,10 +80,6 @@ class ATTR:
 
 MODULES = ["A1-A3", "C1", "C2", "C3", "C4", "D"]
 CATEGORIES = ["fossil", "biogenic", "lulucf", "total"]
-TRADE_YEARS = [str(y) for y in range(2020, 2025)]
-TRADE_TARGET = "442"  # Luxembourg
-TRADE_FLOW = "M"  # Imports
-TRADE_ROW_REGIONS = {"E19", "S19", "E27", "OED", "EUU", "EEC", "ROW", "_X "}
 
 FLOW_PROPERTY_MAPPING = {
     "kg": "93a60a56-a3c8-11da-a746-0800200b9a66",
@@ -109,36 +118,41 @@ LCIA_OUTPUT_MODULES = ["A1-A3", "C1", "C2", "C3", "C4", "D"]
 
 LCIA_AGGREGATE_MAP = {"A1-A3": ["A1", "A2", "A3"]}
 
+# ----------------------------- Physics --------------------------------------
 
-INDICATOR_SYNONYMS = {
-    "GWP-total": {
-        "Global Warming Potential total (GWP-total)",
-        "Global warming potential (GWP)",
-        "Climate change",
-        "GWP total",
-        "Global Warming Potential total",
-        "GWP (total)",
-    },
-    "GWP-fossil": {
-        "Global Warming Potential fossil fuels (GWP-fossil)",
-        "Climate change-Fossil",
-        "Climate change - Fossil",
-        "GWP fossil",
-        "GWP (fossil)",
-    },
-    "GWP-biogenic": {
-        "Global Warming Potential biogenic (GWP-biogenic)",
-        "Climate change-Biogenic",
-        "Climate change - Biogenic",
-        "GWP biogenic",
-        "GWP (biogenic)",
-    },
-    "GWP-luluc": {
-        "Global Warming Potential luluc (GWP-luluc)",
-        "Climate change-Land use and land use change",
-        "Climate change - Land use and land use change",
-        "GWP luluc",
-        "GWP (luluc)",
-        "GWP land use and land use change",
-    },
-}
+_TOL_ABS = 1e-8
+_TOL_REL = 1e-5
+_REL_DEC = 8
+
+QUANTITIES = ("mass", "volume", "surface", "length", "unit_count")
+
+PROPERTIES = (
+    "gross_density",
+    "grammage",
+    "linear_density",
+    "layer_thickness",
+    "cross_sectional_area",
+    "weight_per_piece",
+)
+
+ACCEPTED_RESCALINGS = [
+    {"mass"},
+    {"volume"},
+    {"surface", "layer_thickness"},
+]
+
+VARS = QUANTITIES + PROPERTIES
+
+NAME_TO_IDX = {name: i for i, name in enumerate(VARS)}
+IDX_TO_NAME = {v: k for k, v in NAME_TO_IDX.items()}
+
+REL: List[Tuple[str, List[str]]] = [
+    ("mass", ["volume", "gross_density"]),
+    ("mass", ["surface", "grammage"]),
+    ("mass", ["length", "linear_density"]),
+    ("mass", ["unit_count", "weight_per_piece"]),
+    ("volume", ["surface", "layer_thickness"]),
+    ("volume", ["length", "cross_sectional_area"]),
+    ("grammage", ["layer_thickness", "gross_density"]),
+    ("linear_density", ["cross_sectional_area", "gross_density"]),
+]

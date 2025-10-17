@@ -1,0 +1,24 @@
+{
+  "Name": "Southern Europe",
+  "Class": "Sub-region",
+  "Parent": "Europe",
+  "Children": [
+    "ALB",
+    "AND",
+    "BIH",
+    "ESP",
+    "GIB",
+    "GRC",
+    "HRV",
+    "ITA",
+    "MKD",
+    "MLT",
+    "MNE",
+    "PRT",
+    "SMR",
+    "SRB",
+    "SVN",
+    "VAT",
+    "Southern Europe"
+  ]
+}

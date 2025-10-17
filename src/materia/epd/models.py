@@ -9,14 +9,14 @@ from materia.core.constants import (
     FLOW_PROPERTY_MAPPING,
     UNIT_QUANTITY_MAPPING,
     UNIT_PROPERTY_MAPPING,
-    INDICATOR_SYNONYMS,
     ATTR,
     XP,
     NS,
     FLOW_NS,
     EPD_NS,
 )
-from materia.io.paths import MARKET_FOLDER, MATCHES_FOLDER
+from materia.io.paths import MATCHES_FOLDER
+from materia.resources import get_market_shares, get_indicator_synonyms
 from materia.core.utils import to_float
 from materia.io.files import read_json_file
 from materia.geo.locations import ilcd_to_iso_location
@@ -166,7 +166,11 @@ class IlcdProcess:
             )
 
             canon = next(
-                (c for c, aliases in INDICATOR_SYNONYMS.items() if name in aliases),
+                (
+                    c
+                    for c, aliases in get_indicator_synonyms().items()
+                    if name in aliases
+                ),
                 None,
             )
             if canon:
@@ -180,8 +184,8 @@ class IlcdProcess:
         self.hs_class = top_class.attrib.get(ATTR.CLASS_ID)
 
     def get_market(self) -> dict:
-        market_path = os.path.join(MARKET_FOLDER, f"{self.hs_class}.json")
-        self.market = read_json_file(market_path)
+        self.market = get_market_shares(self.hs_class)
+        return self.market
 
     def get_matches(self) -> dict:
         matches_path = os.path.join(MATCHES_FOLDER, f"{self.uuid}.json")

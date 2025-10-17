@@ -1,0 +1,16 @@
+{
+  "Name": "Micronesia",
+  "Class": "Sub-region",
+  "Parent": "Oceania",
+  "Children": [
+    "FSM",
+    "GUM",
+    "KIR",
+    "MHL",
+    "MNP",
+    "NRU",
+    "PLW",
+    "UMI",
+    "Micronesia"
+  ]
+}

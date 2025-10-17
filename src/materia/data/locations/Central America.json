@@ -1,0 +1,16 @@
+{
+  "Name": "Central America",
+  "Class": "Sub-region",
+  "Parent": "Americas",
+  "Children": [
+    "BLZ",
+    "CRI",
+    "GTM",
+    "HND",
+    "MEX",
+    "NIC",
+    "PAN",
+    "SLV",
+    "Central America"
+  ]
+}

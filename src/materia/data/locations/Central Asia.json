@@ -1,0 +1,14 @@
+{
+  "Name": "Central Asia",
+  "Class": "Sub-region",
+  "Parent": "Asia",
+  "Children": [
+    "KAZ",
+    "KGZ",
+    "TJK",
+    "TKM",
+    "TWN",
+    "UZB",
+    "Central Asia"
+  ]
+}

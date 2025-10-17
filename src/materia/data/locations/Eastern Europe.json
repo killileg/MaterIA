@@ -1,0 +1,18 @@
+{
+  "Name": "Eastern Europe",
+  "Class": "Sub-region",
+  "Parent": "Europe",
+  "Children": [
+    "BGR",
+    "BLR",
+    "CZE",
+    "HUN",
+    "MDA",
+    "POL",
+    "ROU",
+    "RUS",
+    "SVK",
+    "UKR",
+    "Eastern Europe"
+  ]
+}

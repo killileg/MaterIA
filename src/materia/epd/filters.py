@@ -14,7 +14,7 @@ class UUIDFilter(EPDFilter):
     def __init__(self, matches: list):
         self.uuids = (
             matches.get("uuids", matches) if isinstance(matches, dict) else matches
-        )  # matches["uuids"]
+        )
 
     def matches(self, epd: IlcdProcess) -> bool:
         return epd.uuid in self.uuids

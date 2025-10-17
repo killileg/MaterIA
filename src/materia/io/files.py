@@ -12,6 +12,16 @@ def read_json_file(path):
         return None
 
 
+def write_json_file(path, data) -> bool:
+    """Write JSON content to a file. Returns True if successful, False otherwise."""
+    try:
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        return True
+    except (OSError, TypeError, ValueError):
+        return False
+
+
 def read_xml_root(path):
     """Return XML root element or None if invalid."""
     try:

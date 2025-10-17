@@ -73,15 +73,6 @@ def test_lcia_output_modules_and_map_consistency():
     assert set(c.LCIA_OUTPUT_MODULES).issuperset(c.LCIA_AGGREGATE_MAP.keys())
 
 
-def test_indicator_synonyms_cover_expected_keys():
-    assert "GWP-total" in c.INDICATOR_SYNONYMS
-    # Each synonym set contains at least one readable string
-    for key, values in c.INDICATOR_SYNONYMS.items():
-        assert isinstance(values, set)
-        assert all(isinstance(v, str) for v in values)
-        assert any("GWP" in v for v in values)
-
-
 # ----------------------------- Regions & Trade ------------------------------
 
 

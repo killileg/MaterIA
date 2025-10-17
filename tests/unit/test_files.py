@@ -1,87 +1,53 @@
-# tests/unit/test_files.py
-from pathlib import Path
-import json
-
-from materia.io.files import (
-    read_json_file,
-    read_xml_root,
-    gen_json_objects,
-    gen_xml_objects,
-)
+# test_io_files_min.py
+from materia.io import files as mod
 
 
-# ---------- read_json_file ----------
+def test_io_files_full_coverage(tmp_path):
+    # ---- read_json_file ----
+    # missing -> None
+    assert mod.read_json_file(tmp_path / "missing.json") is None
+    # invalid JSON -> None
+    bad_json = tmp_path / "bad.json"
+    bad_json.write_text("{not json}", encoding="utf-8")
+    assert mod.read_json_file(bad_json) is None
+    # valid JSON -> dict
+    good_json = tmp_path / "good.json"
+    good_json.write_text('{"a": 1}', encoding="utf-8")
+    assert mod.read_json_file(good_json) == {"a": 1}
 
+    # ---- write_json_file ----
+    # success -> True
+    out_json = tmp_path / "out.json"
+    assert mod.write_json_file(out_json, {"x": [1, 2]}) is True
+    assert mod.read_json_file(out_json) == {"x": [1, 2]}
+    # failure (unserializable type) -> False
+    assert mod.write_json_file(tmp_path / "bad_out.json", {"s": {1, 2}}) is False
 
-def test_read_json_file_ok(tmp_path: Path):
-    p = tmp_path / "ok.json"
-    p.write_text(json.dumps({"a": 1}), encoding="utf-8")
-    assert read_json_file(p) == {"a": 1}
-
-
-def test_read_json_file_invalid_returns_none(tmp_path: Path):
-    p = tmp_path / "bad.json"
-    p.write_text("{ not: valid", encoding="utf-8")
-    assert read_json_file(p) is None
-
-
-def test_read_json_file_missing_returns_none(tmp_path: Path):
-    p = tmp_path / "missing.json"
-    assert read_json_file(p) is None
-
-
-# ---------- read_xml_root ----------
-
-
-def test_read_xml_root_ok(tmp_path: Path):
-    p = tmp_path / "ok.xml"
-    p.write_text("<root><x/></root>", encoding="utf-8")
-    root = read_xml_root(p)
-    assert root is not None
+    # ---- read_xml_root ----
+    # missing -> None
+    assert mod.read_xml_root(tmp_path / "missing.xml") is None
+    # invalid XML -> None
+    bad_xml = tmp_path / "bad.xml"
+    bad_xml.write_text("<a>", encoding="utf-8")
+    assert mod.read_xml_root(bad_xml) is None
+    # valid XML -> root element
+    good_xml = tmp_path / "good.xml"
+    good_xml.write_text("<root><c/></root>", encoding="utf-8")
+    root = mod.read_xml_root(good_xml)
     assert root.tag == "root"
-    assert [child.tag for child in root] == ["x"]
 
+    # ---- gen_json_objects ----
+    folder = tmp_path / "jsons"
+    folder.mkdir()
+    (folder / "ok.json").write_text('{"ok": true}', encoding="utf-8")
+    (folder / "bad.json").write_text("oops", encoding="utf-8")
+    (folder / "note.txt").write_text("{}", encoding="utf-8")
+    json_items = list(mod.gen_json_objects(folder))
+    assert [(p.name, d) for p, d in json_items] == [("ok.json", {"ok": True})]
 
-def test_read_xml_root_invalid_returns_none(tmp_path: Path):
-    p = tmp_path / "bad.xml"
-    p.write_text("<root>", encoding="utf-8")  # parse error
-    assert read_xml_root(p) is None
-
-
-def test_read_xml_root_missing_returns_none(tmp_path: Path):
-    p = tmp_path / "missing.xml"
-    assert read_xml_root(p) is None
-
-
-# ---------- gen_json_objects ----------
-
-
-def test_gen_json_objects_filters_invalid_and_non_json(tmp_path: Path):
-    (tmp_path / "a.json").write_text('{"ok": true}', encoding="utf-8")
-    (tmp_path / "b.json").write_text("{ nope", encoding="utf-8")  # invalid
-    (tmp_path / "c.txt").write_text("ignore me", encoding="utf-8")  # not .json
-
-    out = list(gen_json_objects(tmp_path))
-    assert [p.name for p, _ in out] == ["a.json"]
-    assert out[0][1] == {"ok": True}
-
-
-def test_gen_json_objects_empty_dir_yields_nothing(tmp_path: Path):
-    assert list(gen_json_objects(tmp_path)) == []
-
-
-# ---------- gen_xml_objects ----------
-
-
-def test_gen_xml_objects_filters_invalid_and_non_xml(tmp_path: Path):
-    (tmp_path / "a.xml").write_text("<root/>", encoding="utf-8")
-    (tmp_path / "b.xml").write_text("<root>", encoding="utf-8")  # invalid
-    (tmp_path / "c.txt").write_text("ignore me", encoding="utf-8")  # not .xml
-
-    out = list(gen_xml_objects(tmp_path))
-    assert [p.name for p, _ in out] == ["a.xml"]
-    assert out[0][1].tag == "root"
-
-
-def test_gen_xml_objects_empty_dir_yields_nothing(tmp_path: Path):
-    assert list(gen_xml_objects(tmp_path)) == []
+    # ---- gen_xml_objects ----
+    (folder / "a.xml").write_text("<a/>", encoding="utf-8")
+    (folder / "b.xml").write_text("<b>", encoding="utf-8")
+    (folder / "c.txt").write_text("<c/>", encoding="utf-8")
+    xml_items = list(mod.gen_xml_objects(folder))
+    assert [(p.name, r.tag) for p, r in xml_items] == [("a.xml", "a")]

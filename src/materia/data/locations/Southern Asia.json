@@ -1,0 +1,17 @@
+{
+  "Name": "Southern Asia",
+  "Class": "Sub-region",
+  "Parent": "Asia",
+  "Children": [
+    "AFG",
+    "BGD",
+    "BTN",
+    "IND",
+    "IRN",
+    "LKA",
+    "MDV",
+    "NPL",
+    "PAK",
+    "Southern Asia"
+  ]
+}

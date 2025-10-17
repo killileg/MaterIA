@@ -1,0 +1,15 @@
+{
+  "Name": "Northern Africa",
+  "Class": "Sub-region",
+  "Parent": "Africa",
+  "Children": [
+    "DZA",
+    "EGY",
+    "ESH",
+    "LBY",
+    "MAR",
+    "SDN",
+    "TUN",
+    "Northern Africa"
+  ]
+}

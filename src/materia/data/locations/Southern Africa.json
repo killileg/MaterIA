@@ -1,0 +1,13 @@
+{
+  "Name": "Southern Africa",
+  "Class": "Sub-region",
+  "Parent": "Africa",
+  "Children": [
+    "BWA",
+    "LSO",
+    "NAM",
+    "SWZ",
+    "ZAF",
+    "Southern Africa"
+  ]
+}

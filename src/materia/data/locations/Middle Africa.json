@@ -1,0 +1,17 @@
+{
+  "Name": "Middle Africa",
+  "Class": "Sub-region",
+  "Parent": "Africa",
+  "Children": [
+    "AGO",
+    "CAF",
+    "CMR",
+    "COD",
+    "COG",
+    "GAB",
+    "GNQ",
+    "STP",
+    "TCD",
+    "Middle Africa"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "Name": "Western Africa",
+  "Class": "Sub-region",
+  "Parent": "Africa",
+  "Children": [
+    "BEN",
+    "BFA",
+    "CIV",
+    "CPV",
+    "GHA",
+    "GIN",
+    "GMB",
+    "GNB",
+    "LBR",
+    "MLI",
+    "MRT",
+    "NER",
+    "NGA",
+    "SEN",
+    "SHN",
+    "SLE",
+    "TGO",
+    "Western Africa"
+  ]
+}

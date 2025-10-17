@@ -1,0 +1,14 @@
+{
+  "Name": "Australia and New Zealand",
+  "Class": "Sub-region",
+  "Parent": "Oceania",
+  "Children": [
+    "AUS",
+    "CCK",
+    "CXR",
+    "HMD",
+    "NFK",
+    "NZL",
+    "Australia and New Zealand"
+  ]
+}

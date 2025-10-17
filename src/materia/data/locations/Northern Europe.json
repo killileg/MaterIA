@@ -1,0 +1,24 @@
+{
+  "Name": "Northern Europe",
+  "Class": "Sub-region",
+  "Parent": "Europe",
+  "Children": [
+    "ALA",
+    "DNK",
+    "EST",
+    "FIN",
+    "FRO",
+    "GBR",
+    "GGY",
+    "IMN",
+    "IRL",
+    "ISL",
+    "JEY",
+    "LTU",
+    "LVA",
+    "NOR",
+    "SJM",
+    "SWE",
+    "Northern Europe"
+  ]
+}

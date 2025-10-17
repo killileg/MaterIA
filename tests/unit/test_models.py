@@ -1,342 +1,165 @@
-# tests/unit/test_models.py
-from __future__ import annotations
-from pathlib import Path
+# test_models_full_coverage.py
 import xml.etree.ElementTree as ET
-import json
-import types
-import pytest
-
-from materia.epd import models as mdl  # under test
+from materia.epd import models
 
 
-# ---------- helpers: simplify constants so we can craft tiny XMLs ----------
-class _ATTR:
-    REF_OBJECT_ID = "refObjectId"
-    LANG = "lang"
-    LOCATION = "location"
-    PROPERTY = "property"
-    ID = "id"
-    NAME = "name"
-    CLASS_ID = "classId"
+def test_models_full_coverage(tmp_path):
+    # -------- Patch minimal constants & helpers (no namespaces) --------
+    models.FLOW_PROPERTY_MAPPING = {"kg": "UUID-MASS"}
+    models.UNIT_QUANTITY_MAPPING = {"kg": "mass"}
+    models.UNIT_PROPERTY_MAPPING = {"g/cm3": "density"}
+    models.NS = {}
+    models.FLOW_NS = {}
+    models.EPD_NS = {}
 
+    class XP:
+        # Flow
+        FLOW_PROPERTY = "flowProperty"
+        MEAN_VALUE = "meanValue"
+        REF_TO_FLOW_PROP = "refToFlowProp"
+        SHORT_DESC = "shortDescription"
+        MATML_DOC = "matML_Doc"
+        PROPERTY_DATA = "propertyData"
+        PROP_DATA = "propData"
+        PROPERTY_DETAILS = "propertyDetails"
+        PROP_NAME = "propName"
+        PROP_UNITS = "propUnits"
+        # Process
+        UUID = "UUID"
+        LOCATION = "location"
+        QUANT_REF = "quantitativeReference"
+        REF_TO_FLOW = "refToFlow"
+        MEAN_AMOUNT = "meanAmount"
+        LCIA_RESULT = ".//lciaResult"
+        REF_TO_LCIA_METHOD = "refToLCIAMethod"
+        AMOUNT = "amount"
+        HS_CLASSIFICATION = ".//hsClassification"
+        CLASS_LEVEL_2 = "classLevel2"
 
-class _XP:
-    UUID = ".//uuid"
-    LOCATION = ".//location"
-    QUANT_REF = ".//quantRef"
-    LCIA_RESULT = ".//lcia"
-    REF_TO_LCIA_METHOD = ".//method"
-    SHORT_DESC = ".//short"
-    AMOUNT = ".//amount"
-    HS_CLASSIFICATION = ".//hs"
-    CLASS_LEVEL_2 = ".//class2"
-    REF_TO_FLOW = ".//refToFlow"
-    MEAN_AMOUNT = ".//meanAmount"
+        @staticmethod
+        def exchange_by_id(_id: str) -> str:
+            return f".//exchange[@id='{_id}']"
 
-    @staticmethod
-    def exchange_by_id(x: str) -> str:
-        return f".//exchange[@id='{x}']"
-
-
-# We’ll use empty namespace dicts in tests
-@pytest.fixture(autouse=True)
-def patch_constants(monkeypatch):
-    # Patch constants the model expects
-    monkeypatch.setattr(mdl, "ATTR", _ATTR, raising=True)
-    monkeypatch.setattr(mdl, "XP", _XP, raising=True)
-    monkeypatch.setattr(mdl, "NS", {}, raising=True)
-    monkeypatch.setattr(mdl, "FLOW_NS", {}, raising=True)
-    monkeypatch.setattr(mdl, "EPD_NS", {}, raising=True)
-
-    # Minimal mappings used in get_ref_flow()
-    monkeypatch.setattr(mdl, "FLOW_PROPERTY_MAPPING", {"kg": "uuid-mass"}, raising=True)
-    monkeypatch.setattr(mdl, "UNIT_QUANTITY_MAPPING", {"kg": "mass"}, raising=True)
-    monkeypatch.setattr(
-        mdl, "UNIT_PROPERTY_MAPPING", {"kg/m3": "gross_density"}, raising=True
-    )
-    monkeypatch.setattr(
-        mdl,
-        "INDICATOR_SYNONYMS",
-        {"GWP": {"GWP", "Global Warming Potential"}},
-        raising=True,
-    )
-
-
-# ----------------------------- IlcdProcess: uuid + loc -----------------------------
-
-
-def test_ilcdprocess_post_init_sets_uuid_and_loc(monkeypatch):
-    root = ET.fromstring(
-        "<process>" "  <uuid>abc-123</uuid>" '  <location location="FR"/>' "</process>"
-    )
-    monkeypatch.setattr(mdl, "ilcd_to_iso_location", lambda code: "FRA", raising=True)
-
-    proc = mdl.IlcdProcess(root=root, path=Path("dummy.xml"))
-    assert proc.uuid == "abc-123"
-    assert proc.loc == "FRA"
-
-
-# ----------------------------- get_ref_flow: material kwargs -----------------------
-
-
-def test_get_ref_flow_builds_material_and_kwargs(tmp_path: Path, monkeypatch):
-    # process file path structure: <tmp>/epd/proc.xml so flows live in <tmp>/flows
-    epd_dir = tmp_path / "epd"
-    flows_dir = tmp_path / "flows"
-    epd_dir.mkdir()
-    flows_dir.mkdir()
-
-    # The referenced flow UUID, and exchange amount
-    flow_uuid = "flow-001"
-    exchange_id = "x1"
-
-    # Process XML: refers to the flow via exchange
-    proc_xml = ET.fromstring(
-        "<process>"
-        f"  <uuid>u-1</uuid>"
-        '  <location location="FR"/>'
-        f"  <quantRef>{exchange_id}</quantRef>"
-        f'  <exchange id="{exchange_id}">'
-        f'    <refToFlow { _ATTR.REF_OBJECT_ID }="{flow_uuid}"/>'
-        f"    <meanAmount>3.0</meanAmount>"
-        f"  </exchange>"
-        "</process>"
-    )
-    proc_path = epd_dir / "proc.xml"
-    ET.ElementTree(proc_xml).write(proc_path, encoding="utf-8")
-
-    # A flows file must exist, but we’ll fake IlcdFlow to avoid complex XML
-    (flows_dir / f"{flow_uuid}.xml").write_text("<flow/>", encoding="utf-8")
-
-    created = {}
-
-    class FakeIlcdFlow:
-        def __init__(self, root):
-            # 2 kg (unit) * 3.0 (exchange) -> mass = 6.0
-            self.units = [{"Name": "Mass", "Unit": "kg", "Amount": 2.0}]
-            # property goes through unchanged
-            self.props = [{"Name": "Density", "Unit": "kg/m3", "Amount": 1000.0}]
-
-    class FakeMaterial:
-        def __init__(self, **kw):
-            created["kwargs"] = kw
-            self.scaling_factor = 1.0
-
-    monkeypatch.setattr(mdl, "IlcdFlow", FakeIlcdFlow, raising=True)
-    monkeypatch.setattr(mdl, "Material", FakeMaterial, raising=True)
-
-    proc = mdl.IlcdProcess(root=proc_xml, path=proc_path)
-    proc.get_ref_flow()
-
-    # Expect kwargs mass = 2 * 3 and gross_density = 1000
-    assert created["kwargs"]["mass"] == pytest.approx(6.0)
-    assert created["kwargs"]["gross_density"] == pytest.approx(1000.0)
-    assert isinstance(proc.material, FakeMaterial)
-
-
-# ----------------------------- get_lcia_results ------------------------------------
-
-
-def test_get_lcia_results_normalizes_and_canonizes(monkeypatch):
-    # Build an LCIA structure with method name 'GWP' and two amount nodes
-    root = ET.fromstring(
-        "<process>"
-        "  <lcia>"
-        "    <method><short lang='en'>GWP</short></method>"
-        "    <amount>1.0</amount>"
-        "    <amount>2.0</amount>"
-        "  </lcia>"
-        "</process>"
-    )
-
-    proc = mdl.IlcdProcess(root=root, path=Path("dummy.xml"))
-
-    # Fake Material so scaling_factor exists
-    proc.material = types.SimpleNamespace(scaling_factor=1.0)
-
-    # normalize_module_values returns a dict we can assert on
-    monkeypatch.setattr(
-        mdl,
-        "normalize_module_values",
-        lambda elems, scaling_factor: {"A1-A3": 3.0},
-        raising=True,
-    )
-
-    proc.get_lcia_results()
-    assert isinstance(proc.lcia_results, list)
-    assert proc.lcia_results == [{"name": "GWP", "values": {"A1-A3": 3.0}}]
-
-
-# ----------------------------- hs class + market/matches ---------------------------
-
-
-def test_get_hs_class_and_market_and_matches(tmp_path: Path, monkeypatch):
-    # XML with HS class level 2
-    root = ET.fromstring("<process>" "  <hs><class2 classId='7208'/></hs>" "</process>")
-    proc = mdl.IlcdProcess(root=root, path=Path("dummy.xml"))
-
-    # Create small market/matches JSON files
-    market_dir = tmp_path / "market"
-    matches_dir = tmp_path / "matches"
-    market_dir.mkdir()
-    matches_dir.mkdir()
-    (market_dir / "7208.json").write_text(
-        json.dumps({"FR": 0.7, "DE": 0.3}), encoding="utf-8"
-    )
-    (matches_dir / "abc-uuid.json").write_text(
-        json.dumps({"uuid": "abc-uuid"}), encoding="utf-8"
-    )
-
-    # Point folders in the module
-    monkeypatch.setattr(mdl, "MARKET_FOLDER", str(market_dir), raising=True)
-    monkeypatch.setattr(mdl, "MATCHES_FOLDER", str(matches_dir), raising=True)
-
-    # Use a simple file reader
-    def _reader(path):
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
-
-    monkeypatch.setattr(mdl, "read_json_file", _reader, raising=True)
-
-    # Execute
-    proc.get_hs_class()
-    assert proc.hs_class == "7208"
-
-    proc.get_market()
-    assert proc.market == {"FR": 0.7, "DE": 0.3}
-
-    # pretend the process has uuid to fetch matches
-    proc.uuid = "abc-uuid"
-    proc.get_matches()
-    assert proc.matches == {"uuid": "abc-uuid"}
-
-
-def test_ilcdflow_parses_units_and_props(monkeypatch):
-    """
-    Covers IlcdFlow._get_units and _get_props happy paths:
-    - unit mapping via FLOW_PROPERTY_MAPPING reverse lookup
-    - english short description selection
-    - props resolved via PROPERTY_DATA + PROPERTY_DETAILS
-    """
-
-    # Minimal constants used by IlcdFlow
     class ATTR:
         REF_OBJECT_ID = "refObjectId"
         LANG = "lang"
+        LOCATION = "location"
         PROPERTY = "property"
         ID = "id"
         NAME = "name"
+        CLASS_ID = "classId"
 
-    class XP:
-        # units side
-        FLOW_PROPERTY = ".//flowProp"
-        MEAN_VALUE = ".//mean"
-        REF_TO_FLOW_PROP = ".//ref"
-        SHORT_DESC = ".//short"
-        # props side
-        MATML_DOC = ".//matml"
-        PROPERTY_DATA = ".//propData"
-        PROP_DATA = ".//value"
-        PROPERTY_DETAILS = ".//propDetail"
-        PROP_NAME = ".//name"
-        PROP_UNITS = ".//units"
+    models.XP = XP
+    models.ATTR = ATTR
 
-    # Patch the lookups IlcdFlow relies on
-    monkeypatch.setattr(mdl, "ATTR", ATTR, raising=True)
-    monkeypatch.setattr(mdl, "XP", XP, raising=True)
-    monkeypatch.setattr(mdl, "FLOW_NS", {}, raising=True)
+    # minimal stubs used internally
+    models.to_float = lambda v, positive=False: float(v)
+    models.ilcd_to_iso_location = lambda code: code
 
-    # Reverse lookup: uuid -> "kg"
-    monkeypatch.setattr(mdl, "FLOW_PROPERTY_MAPPING", {"kg": "uuid-mass"}, raising=True)
+    class Material:
+        def __init__(self, **kwargs):
+            self.kwargs = kwargs
+            self.scaling_factor = 2.0  # arbitrary but exercises scaling param flow
 
-    # Build a tiny flow XML that matches the patched XPaths
-    root = ET.fromstring(
-        "<flow>"
-        "  <flowProp>"
-        "    <mean>2.0</mean>"
-        "    <ref refObjectId='uuid-mass'>"
-        "      <short lang='fr'>Masse</short>"
-        "      <short lang='en'>Mass</short>"
-        "    </ref>"
-        "  </flowProp>"
-        "  <matml>"
-        "    <propData property='p1'><value>1000.0</value></propData>"
-        "    <propDetail id='p1'>"
-        "      <name>Density</name>"
-        "      <units name='kg/m3'/>"
-        "    </propDetail>"
-        "  </matml>"
-        "</flow>"
-    )
+    models.Material = Material
+    models.normalize_module_values = lambda elems, scaling_factor=1.0: [10, 20, 30]
+    models.get_indicator_synonyms = lambda: {"GWP": ["Global Warming Potential"]}
+    models.get_market_shares = lambda _hs: {"EU": 0.7}
+    models.read_json_file = lambda _p: {"match": True}
+    models.MATCHES_FOLDER = str(tmp_path)
 
-    # Instantiate the real IlcdFlow; since it's not a dataclass, wire root manually
-    flow = mdl.IlcdFlow()
-    flow.root = root
-    flow._get_units()
-    flow._get_props()
+    # Make IlcdFlow constructible as IlcdFlow(root=...)
+    def _ilcdflow_init(self, root):
+        self.root = root
+        self._get_units()
+        self._get_props()
 
-    assert flow.units == [{"Name": "Mass", "Unit": "kg", "Amount": 2.0}]
-    assert flow.props == [{"Name": "Density", "Unit": "kg/m3", "Amount": 1000.0}]
+    models.IlcdFlow.__init__ = _ilcdflow_init
 
+    # -------- Tiny on-disk dataset --------
+    base = tmp_path / "dataset"
+    flows_dir = base / "flows"
+    processes_dir = base / "processes"
+    flows_dir.mkdir(parents=True, exist_ok=True)
+    processes_dir.mkdir(parents=True, exist_ok=True)
 
-def test_ilcdflow_props_when_matml_missing(monkeypatch):
-    """
-    Covers the early-return branch in _get_props (matml is None).
-    """
+    # Flow referenced by the process (has units + props)
+    flow_xml = """<flow>
+      <flowProperty>
+        <meanValue>2.0</meanValue>
+        <refToFlowProp refObjectId="UUID-MASS">
+          <shortDescription lang="en">Mass</shortDescription>
+        </refToFlowProp>
+      </flowProperty>
+      <matML_Doc>
+        <propertyDetails id="PD1">
+          <propName>Density</propName>
+          <propUnits name="g/cm3" />
+        </propertyDetails>
+        <propertyData property="PD1">
+          <propData>7.8</propData>
+        </propertyData>
+      </matML_Doc>
+    </flow>"""
+    (flows_dir / "FLOW-UUID-1.xml").write_text(flow_xml, encoding="utf-8")
 
-    class XP:
-        MATML_DOC = ".//matml"  # won't be present
-        # The rest are irrelevant for this test
-        FLOW_PROPERTY = ".//flowProp"
-        MEAN_VALUE = ".//mean"
-        REF_TO_FLOW_PROP = ".//ref"
-        SHORT_DESC = ".//short"
-        PROPERTY_DATA = ".//propData"
-        PROP_DATA = ".//value"
-        PROPERTY_DETAILS = ".//propDetail"
-        PROP_NAME = ".//name"
-        PROP_UNITS = ".//units"
+    # Process using that flow + LCIA + HS classification
+    process_xml = """<process>
+      <UUID>abc-123</UUID>
+      <location location="FR" />
+      <quantitativeReference>ex1</quantitativeReference>
+      <exchanges>
+        <exchange id="ex1">
+          <meanAmount>3</meanAmount>
+          <refToFlow refObjectId="FLOW-UUID-1" />
+        </exchange>
+      </exchanges>
+      <lciaResults>
+        <lciaResult>
+          <refToLCIAMethod>
+            <shortDescription lang="en">Global Warming Potential</shortDescription>
+          </refToLCIAMethod>
+          <amount>1</amount><amount>2</amount><amount>3</amount>
+        </lciaResult>
+      </lciaResults>
+      <hsClassification>
+        <classLevel2 classId="72"/>
+      </hsClassification>
+    </process>"""
+    process_path = processes_dir / "proc.xml"
+    process_path.write_text(process_xml, encoding="utf-8")
 
-    monkeypatch.setattr(mdl, "XP", XP, raising=True)
-    monkeypatch.setattr(mdl, "FLOW_NS", {}, raising=True)
+    # -------- Drive all code paths --------
+    proc = models.IlcdProcess(root=ET.fromstring(process_xml), path=process_path)
 
-    root = ET.fromstring("<flow/>")
+    # __post_init__: uuid + loc
+    assert proc.uuid == "abc-123"
+    assert proc.loc == "FR"
 
-    flow = mdl.IlcdFlow()
-    flow.root = root
-    flow._get_props()
+    # get_ref_flow: reads flow file, computes material kwargs
+    proc.get_ref_flow()
+    assert proc.material_kwargs["mass"] == 6.0  # 2.0 * 3
+    assert proc.material_kwargs["density"] == 7.8  # from props
 
-    assert flow.props == []
+    # get_lcia_results: normalization + canonical name
+    proc.get_lcia_results()
+    assert proc.lcia_results == [{"name": "GWP", "values": [10, 20, 30]}]
 
+    # get_hs_class + get_market
+    proc.get_hs_class()
+    assert proc.hs_class == "72"
+    assert proc.get_market() == {"EU": 0.7}
 
-def test_ilcdflow_post_init_calls_parsers(monkeypatch):
-    """
-    IlcdFlow has no __init__(root=...) in this codebase, so we instantiate it
-    without args, set `root`, then call __post_init__ manually. We monkeypatch
-    the two parser methods to confirm both lines (32–33) execute.
-    """
-    import xml.etree.ElementTree as ET
-    from materia.epd import models as mdl
+    # get_matches (side-effect, not return)
+    proc.get_matches()
+    assert proc.matches == {"match": True}
 
-    # Minimal valid element; real parsing isn't needed for this coverage test.
-    root = ET.fromstring("<flow/>")
+    # Cover IlcdFlow.__post_init__ and _get_props early-return branch
+    f_no_matml = models.IlcdFlow.__new__(models.IlcdFlow)
+    f_no_matml.root = ET.fromstring("<flow/>")
+    f_no_matml._get_props()  # triggers early 'return' branch
 
-    flow = mdl.IlcdFlow()
-    flow.root = root
-
-    calls = []
-
-    def _stub_get_units(self):
-        calls.append("units")
-
-    def _stub_get_props(self):
-        calls.append("props")
-
-    # Patch the instance methods so we know they were invoked
-    monkeypatch.setattr(mdl.IlcdFlow, "_get_units", _stub_get_units, raising=False)
-    monkeypatch.setattr(mdl.IlcdFlow, "_get_props", _stub_get_props, raising=False)
-
-    # Manually trigger the method that contains the two uncovered lines
-    flow.__post_init__()
-
-    assert calls == ["units", "props"]
+    f_with_matml = models.IlcdFlow.__new__(models.IlcdFlow)
+    f_with_matml.root = ET.fromstring(flow_xml)
+    f_with_matml.__post_init__()  # calls _get_units + _get_props
+    assert f_with_matml.units and f_with_matml.props

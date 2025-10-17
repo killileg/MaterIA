@@ -1,0 +1,15 @@
+{
+  "Name": "Eastern Asia",
+  "Class": "Sub-region",
+  "Parent": "Asia",
+  "Children": [
+    "CHN",
+    "HKG",
+    "JPN",
+    "KOR",
+    "MAC",
+    "MNG",
+    "PRK",
+    "Eastern Asia"
+  ]
+}
