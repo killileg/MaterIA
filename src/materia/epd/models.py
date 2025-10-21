@@ -24,6 +24,7 @@ from materia.core.physics import Material
 from materia.metrics.normalize import normalize_module_values
 
 
+@dataclass
 class IlcdFlow:
     root: ET.Element
 

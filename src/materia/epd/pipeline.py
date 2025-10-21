@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from pprint import pprint
 
-from materia.io.paths import GEN_PRODUCTS_FOLDER, EPD_FOLDER
+from materia.io.paths import EPD_FOLDER
 from materia.epd.models import IlcdProcess
 from materia.epd.filters import UUIDFilter, UnitConformityFilter, LocationFilter
 from materia.geo.locations import escalate_location_set
@@ -86,11 +86,13 @@ def epd_pipeline(process: IlcdProcess):
     return weighted_averages(process.market, market_impacts)
 
 
-for path, root in gen_xml_objects(GEN_PRODUCTS_FOLDER):
-    process = IlcdProcess(root=root, path=path)
-    process.get_ref_flow()
-    process.get_hs_class()
-    process.get_market()
-    process.get_matches()
-    if process.matches:
-        weighted = epd_pipeline(process)
+def run_materia(path_to_generic_product: Path):
+    for path, root in gen_xml_objects(path_to_generic_product):  # GEN_PRODUCTS_FOLDER
+        process = IlcdProcess(root=root, path=path)
+        process.get_ref_flow()
+        process.get_hs_class()
+        process.get_market()
+        process.get_matches()
+        if process.matches:
+            weighted = epd_pipeline(process)
+    return weighted

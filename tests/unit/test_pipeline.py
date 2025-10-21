@@ -219,56 +219,33 @@ def test_gen_xml_objects_handles_invalid_xml(tmp_path, capsys):
     assert "Error reading bad.xml" in captured
 
 
-def test_module_script_bottom_loop_executes(monkeypatch, tmp_path, capsys):
+def test_run_materia_executes_pipeline_minimal(monkeypatch, tmp_path):
     """
-    Execute materia.epd.pipeline as a script so the __main__ block (lines 88–95)
-    actually runs and prints the weighted result.
+    Exercise run_materia without touching heavy internals.
+    We stub gen_xml_objects, IlcdProcess and epd_pipeline so the function
+    flows through and returns the weighted dict.
     """
-    import runpy
+    from pathlib import Path
+    import xml.etree.ElementTree as ET
 
-    # Source modules that pipeline imports from
-    from materia.io import paths as io_paths
-    from materia.epd import models as mdl
-    from materia.metrics import averaging as avg_mod
-    from materia.core import physics as phys
-    from materia.geo import locations as geo_loc
+    # --- make run_materia see exactly one "generic product" XML
+    prod_dir = tmp_path / "products"
+    prod_dir.mkdir()
 
-    # --- minimal inputs so both outer loop and epd_pipeline have something to chew
-    products_dir = tmp_path / "products"
-    products_dir.mkdir()
-    (products_dir / "prod.xml").write_text("<root/>", encoding="utf-8")
+    def fake_gen_xml_objects(folder):
+        assert Path(folder) == prod_dir
+        yield (prod_dir / "prod.xml", ET.Element("root"))
 
-    epd_dir = tmp_path / "epds"
-    epd_dir.mkdir()
-    (epd_dir / "epd.xml").write_text("<root/>", encoding="utf-8")
+    monkeypatch.setattr(pl, "gen_xml_objects", fake_gen_xml_objects, raising=True)
 
-    # pipeline imports these by value at import time
-    monkeypatch.setattr(io_paths, "GEN_PRODUCTS_FOLDER", products_dir, raising=True)
-    monkeypatch.setattr(io_paths, "EPD_FOLDER", epd_dir, raising=True)
-
-    # keep location escalation simple
-    monkeypatch.setattr(geo_loc, "escalate_location_set", lambda m: m, raising=True)
-
-    # Cheap stand-ins used by the pipeline and epd_pipeline()
-    class FakeMat:
-        def rescale(self, *_a, **_k):
-            pass
-
-        def to_dict(self):
-            return {"mass": 1.0}
-
+    # --- lightweight IlcdProcess used by run_materia
     class FakeIlcd:
         def __init__(self, root, path):
             self.root = root
             self.path = path
-            # product process side
-            self.matches = ["uuid-1"]
+            self.matches = True
             self.market = {"FR": 1.0}
-            self.material_kwargs = {"mass": 1.0}  #
-            # EPD side
-            self.uuid = "uuid-1"
-            self.loc = "FR"
-            self.material = FakeMat()
+            self.material_kwargs = {"mass": 1.0}
 
         def get_ref_flow(self):
             pass
@@ -282,33 +259,13 @@ def test_module_script_bottom_loop_executes(monkeypatch, tmp_path, capsys):
         def get_matches(self):
             pass
 
-        def get_lcia_results(self):  # used on filtered EPDs
-            self.lcia_results = {"GWP": 0.0}
+    monkeypatch.setattr(pl, "IlcdProcess", FakeIlcd, raising=True)
 
-    monkeypatch.setattr(mdl, "IlcdProcess", FakeIlcd, raising=True)
-
-    # averages used inside epd_pipeline()
+    # --- stub the heavy pipeline to return a deterministic result
     monkeypatch.setattr(
-        avg_mod,
-        "average_material_properties",
-        lambda epds: {"mass": 1.0, "volume": 1.0},
-        raising=True,
-    )
-    monkeypatch.setattr(
-        avg_mod, "average_impacts", lambda items: {"GWP": 0.0}, raising=True
-    )
-    monkeypatch.setattr(
-        avg_mod,
-        "weighted_averages",
-        lambda market, impacts: {"weighted_GWP": 0.0},
-        raising=True,
+        pl, "epd_pipeline", lambda process: {"weighted_GWP": 2}, raising=True
     )
 
-    # Material factory used inside epd_pipeline()
-    monkeypatch.setattr(phys, "Material", lambda **kw: FakeMat(), raising=True)
-
-    # --- run the module AS A SCRIPT so the __main__ block executes
-    runpy.run_module("materia.epd.pipeline", run_name="__main__")
-
-    # pprint(weighted) should have printed our key
-    assert capsys.readouterr().out.strip() != ""
+    # --- run and assert
+    result = pl.run_materia(prod_dir)
+    assert result == {"weighted_GWP": 2}

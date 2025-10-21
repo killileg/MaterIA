@@ -16,7 +16,7 @@ def ilcd_to_iso_location(ilcd_code):
 
 def get_location_attribute(location_code: str, attribute: str):
     """Returns a specific attribute from a location JSON file."""
-    location_data = get_location_data(location_code).get(attribute)
+    location_data = get_location_data(location_code)  # .get(attribute)
     return (location_data or {}).get(attribute)
 
 
