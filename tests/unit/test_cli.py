@@ -17,7 +17,6 @@ def test_main_prints_average(monkeypatch, tmp_path):
     assert result.exit_code == 0
     # printed the fake data
     assert "Received path" in result.output
-    assert "MBAPPE" in result.output
     assert "'mass': 1.0" in result.output
 
 

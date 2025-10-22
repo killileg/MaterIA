@@ -29,5 +29,4 @@ def main(input_path, output_path):  # ADD EPD_PATH ARGUMENT
         click.echo(f"Output has been written in {output_path}")
     else:
         # print to terminal
-        print("MBAPPE")
         click.echo(average)
