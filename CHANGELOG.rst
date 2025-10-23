@@ -2,9 +2,10 @@
 Changelog
 =========
 
-Version 0.1
+Version 0.1.0 (2025-10-23)
 ===========
 
-- Feature A added
-- FIX: nasty bug #1729 fixed
-- add your changes here!
+- Initial release
+- Added EPD aggregation features
+- Normalization of material properties and LCIA modules
+- Cli tool to access basic functions

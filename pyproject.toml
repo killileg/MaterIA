@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "materia-epd"
-version = "0.1.0"
+version = "0.0.0"  # Dummy version REQUIRED, setuptools_scm will override at build time
 description = "Generic EPD Aggregator"
 authors = [{ name = "Paul Baustert", email = "p.m.baustert@gmail.com" }]
 readme = { file = "README.md", content-type = "text/markdown" }
@@ -37,6 +37,7 @@ dev = [
 
 [tool.setuptools_scm]
 version_scheme = "no-guess-dev"
+local_scheme = "dirty-tag"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
