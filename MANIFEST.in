@@ -1,0 +1,25 @@
+include .coveragerc
+include .pre-commit-config.yaml
+include .readthedocs.yml
+include CHANGELOG.rst
+include CONTRIBUTING.rst
+include pytest.ini
+include requirements-dev.txt
+include tox.ini
+include deptry.toml
+
+include *.txt
+include *.yaml
+include *.yml
+include *.rst
+include *.toml
+recursive-include docs *.py
+recursive-include docs *.rst
+recursive-include docs *.txt
+recursive-include docs Makefile
+
+recursive-include src *.json
+recursive-include src *.xml
+recursive-include src *.xsd
+
+recursive-include tests *.py
