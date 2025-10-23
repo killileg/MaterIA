@@ -8,7 +8,6 @@ version = "0.1.0"
 description = "Generic EPD Aggregator"
 authors = [{ name = "Paul Baustert", email = "p.m.baustert@gmail.com" }]
 readme = { file = "README.md", content-type = "text/markdown; charset=utf-8" }
-license-files = ["LICENSE.txt"]
 requires-python = ">=3.10"
 dependencies = [
     "click",
@@ -17,6 +16,12 @@ dependencies = [
     "tqdm",
     "pycountry",
     "comtradeapicall"
+]
+license = "MIT"
+license-files = ["LICENSE.txt"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent"
 ]
 
 [project.optional-dependencies]
