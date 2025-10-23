@@ -35,9 +35,6 @@ def test_gen_epds_wraps_files_into_IlcdProcess(tmp_path: Path, monkeypatch):
     (tmp_path / "p1.xml").write_text("<root id='1'/>", encoding="utf-8")
     (tmp_path / "p2.xml").write_text("<root id='2'/>", encoding="utf-8")
 
-    # point EPD_FOLDER to our tmp dir
-    monkeypatch.setattr(pl, "EPD_FOLDER", tmp_path, raising=True)
-
     created = []
 
     class FakeIlcd:
@@ -46,8 +43,7 @@ def test_gen_epds_wraps_files_into_IlcdProcess(tmp_path: Path, monkeypatch):
 
     monkeypatch.setattr(pl, "IlcdProcess", FakeIlcd, raising=True)
 
-    epds = list(pl.gen_epds())
-    # two IlcdProcess instances created
+    epds = list(pl.gen_epds(tmp_path))  # <-- pass folder path
     assert len(epds) == 2
     assert {n for n, _ in created} == {"p1.xml", "p2.xml"}
 
@@ -133,9 +129,13 @@ def test_epd_pipeline_happy_path(monkeypatch):
             self.lcia_results = {"GWP": 1}
 
         def get_lcia_results(self):
+            # simulate the pipeline mutating LCIA results
             self.lcia_results = {"GWP": 2}
 
-    monkeypatch.setattr(pl, "gen_epds", lambda: [EpD("a"), EpD("b")], raising=True)
+    # NEW: gen_epds now takes a folder argument
+    monkeypatch.setattr(
+        pl, "gen_epds", lambda folder: [EpD("a"), EpD("b")], raising=True
+    )
 
     # Filters are built but we don't care about their logic; just accept everything
     monkeypatch.setattr(
@@ -175,31 +175,16 @@ def test_epd_pipeline_happy_path(monkeypatch):
         pl,
         "weighted_averages",
         lambda market, imp: {
-            "weighted_GWP": sum(
-                (
-                    (
-                        imp[c]["GWP"]
-                        if isinstance(imp.get(c), dict)
-                        else next(
-                            (
-                                item["values"].get("A1-A3", 0.0)
-                                for item in imp.get(c, [])
-                                if item.get("name") == "GWP"
-                            ),
-                            0.0,
-                        )
-                    )
-                    * w
-                )
-                for c, w in market.items()
-                if c in imp
-            )
+            "weighted_GWP": sum(imp[c]["GWP"] * w for c, w in market.items())
         },
         raising=True,
     )
 
-    result = pl.epd_pipeline(process)
-    # Both epds had GWP=2, bla bla
+    # NEW: pass a dummy EPD folder path (the stubbed gen_epds ignores it)
+    dummy_epd_folder = Path("ignored")
+
+    result = pl.epd_pipeline(process, dummy_epd_folder)
+    # Both epds had GWP promoted to 2; weighted sum = 2*(0.6 + 0.4) = 4
     assert result == {"weighted_GWP": 4}
 
 
@@ -223,15 +208,18 @@ def test_run_materia_executes_pipeline_minimal(monkeypatch, tmp_path):
     """
     Exercise run_materia without touching heavy internals.
     We stub gen_xml_objects, IlcdProcess and epd_pipeline so the function
-    flows through and returns the weighted dict.
+    flows through and returns (weighted, uuid).
     """
     from pathlib import Path
     import xml.etree.ElementTree as ET
 
-    # --- make run_materia see exactly one "generic product" XML
+    # --- product & epd folders
     prod_dir = tmp_path / "products"
+    epd_dir = tmp_path / "epds"
     prod_dir.mkdir()
+    epd_dir.mkdir()
 
+    # --- make run_materia see exactly one "generic product" XML
     def fake_gen_xml_objects(folder):
         assert Path(folder) == prod_dir
         yield (prod_dir / "prod.xml", ET.Element("root"))
@@ -243,6 +231,7 @@ def test_run_materia_executes_pipeline_minimal(monkeypatch, tmp_path):
         def __init__(self, root, path):
             self.root = root
             self.path = path
+            self.uuid = "uuid-1"
             self.matches = True
             self.market = {"FR": 1.0}
             self.material_kwargs = {"mass": 1.0}
@@ -262,10 +251,11 @@ def test_run_materia_executes_pipeline_minimal(monkeypatch, tmp_path):
     monkeypatch.setattr(pl, "IlcdProcess", FakeIlcd, raising=True)
 
     # --- stub the heavy pipeline to return a deterministic result
+    # Note: epd_pipeline(process, path_to_epd_folder)
     monkeypatch.setattr(
-        pl, "epd_pipeline", lambda process: {"weighted_GWP": 2}, raising=True
+        pl, "epd_pipeline", lambda process, epd_path: {"weighted_GWP": 2}, raising=True
     )
 
     # --- run and assert
-    result = pl.run_materia(prod_dir)
-    assert result == {"weighted_GWP": 2}
+    result = pl.run_materia(prod_dir, epd_dir)
+    assert result == ({"weighted_GWP": 2}, "uuid-1")
