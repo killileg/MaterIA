@@ -3,8 +3,12 @@ requires = ["setuptools>=68", "setuptools_scm[toml]>=8", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "materia"
-dynamic = ["version"]
+name = "materia-epd"
+version = "0.1.0"
+description = "Generic EPD Aggregator"
+authors = [{ name = "Paul Baustert", email = "p.m.baustert@gmail.com" }]
+readme = { file = "README.md", content-type = "text/markdown; charset=utf-8" }
+license = { file = "LICENSE.txt" }
 requires-python = ">=3.10"
 dependencies = [
     "click",
