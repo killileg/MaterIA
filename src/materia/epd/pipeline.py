@@ -4,7 +4,6 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from pprint import pprint
 
-from materia.io.paths import GEN_PRODUCTS_FOLDER, EPD_FOLDER
 from materia.epd.models import IlcdProcess
 from materia.epd.filters import UUIDFilter, UnitConformityFilter, LocationFilter
 from materia.geo.locations import escalate_location_set
@@ -18,7 +17,13 @@ from materia.core.errors import NoMatchingEPDError
 
 
 def gen_xml_objects(folder_path):
-    folder = Path(folder_path)
+    if folder_path.is_file():  # folder_path is a file
+        folder = Path(folder_path).parent
+    elif folder_path.is_dir():  # folder_path is a folder
+        folder = Path(folder_path)
+    else:
+        raise ValueError("Not a file/folder path")
+
     for xml_file in folder.glob("*.xml"):
         try:
             tree = ET.parse(xml_file)
@@ -28,8 +33,8 @@ def gen_xml_objects(folder_path):
             print(f"❌ Error reading {xml_file.name}: {e}")
 
 
-def gen_epds():
-    for path, root in gen_xml_objects(EPD_FOLDER):
+def gen_epds(folder_path):
+    for path, root in gen_xml_objects(folder_path):
         yield IlcdProcess(root=root, path=path)
 
 
@@ -54,8 +59,10 @@ def gen_locfiltered_epds(epd_roots, filters, max_attempts=4):
     raise NoMatchingEPDError(filters)
 
 
-def epd_pipeline(process: IlcdProcess):
-    epds = gen_epds()
+def epd_pipeline(process: IlcdProcess, path_to_epd_folder: Path):
+    EPD_FOLDER = Path(path_to_epd_folder) / "processes"
+
+    epds = gen_epds(EPD_FOLDER)
 
     filters = []
     if process.matches:
@@ -86,11 +93,14 @@ def epd_pipeline(process: IlcdProcess):
     return weighted_averages(process.market, market_impacts)
 
 
-for path, root in gen_xml_objects(GEN_PRODUCTS_FOLDER):
-    process = IlcdProcess(root=root, path=path)
-    process.get_ref_flow()
-    process.get_hs_class()
-    process.get_market()
-    process.get_matches()
-    if process.matches:
-        weighted = epd_pipeline(process)
+def run_materia(path_to_gen_folder: Path, path_to_epd_folder: Path):
+    GEN_PRODUCTS_FOLDER = Path(path_to_gen_folder)  # path to GenPro + "generic"
+    for path, root in gen_xml_objects(GEN_PRODUCTS_FOLDER):  # GEN_PRODUCTS_FOLDER
+        process = IlcdProcess(root=root, path=path)
+        process.get_ref_flow()
+        process.get_hs_class()
+        process.get_market()
+        process.get_matches()
+        if process.matches:
+            weighted = epd_pipeline(process, path_to_epd_folder)
+            return weighted, process.uuid

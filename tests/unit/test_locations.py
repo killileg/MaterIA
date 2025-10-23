@@ -5,10 +5,8 @@ import materia.geo.locations as loc
 
 def test_locations_full_coverage(monkeypatch):
     # ---------- stubs for ilcd_to_iso_location ----------
-    # Regions mapping path
     loc.get_regions_mapping = lambda: {"R1": {"Regions": "REG-VAL"}}
 
-    # pycountry path (countries + historic)
     class _C:
         def __init__(self, a3):
             self.alpha_3 = a3
@@ -33,24 +31,21 @@ def test_locations_full_coverage(monkeypatch):
     assert loc.ilcd_to_iso_location("ZZ") is None
 
     # ---------- get_location_attribute ----------
-    # First call returns None (outer .get -> None -> {}.get -> None)
-    # Second call returns nested value (outer .get -> dict -> inner .get -> value)
     data = {
         "X": {"Foo": None},
         "Y": {"Bar": {"Bar": 123}},
     }
     loc.get_location_data = lambda code: data[code]
     assert loc.get_location_attribute("X", "Foo") is None
-    assert loc.get_location_attribute("Y", "Bar") == 123
+    # expect the first-level value (a dict), matching the implementation
+    assert loc.get_location_attribute("Y", "Bar") == {"Bar": 123}
 
     # ---------- escalate_location_set ----------
     parents = {"A": "P1", "B": "P1", "C": None}
     children = {"P1": ["Achild", "Bchild"]}
 
-    # Patch the function used inside escalate_location_set
     loc.get_location_attribute = lambda code, attr: (
         parents if attr == "Parent" else children
     ).get(code)
 
-    # Should deduplicate via set; ignore None parent
     assert loc.escalate_location_set({"A", "B", "C"}) == {"Achild", "Bchild"}

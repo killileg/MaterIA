@@ -15,7 +15,8 @@ from materia.core.constants import (
     FLOW_NS,
     EPD_NS,
 )
-from materia.io.paths import MATCHES_FOLDER
+
+# from materia.io.paths import MATCHES_FOLDER
 from materia.resources import get_market_shares, get_indicator_synonyms
 from materia.core.utils import to_float
 from materia.io.files import read_json_file
@@ -24,6 +25,7 @@ from materia.core.physics import Material
 from materia.metrics.normalize import normalize_module_values
 
 
+@dataclass
 class IlcdFlow:
     root: ET.Element
 
@@ -120,11 +122,11 @@ class IlcdProcess:
         ref_flow_uuid = ref_flow_exchange.find(XP.REF_TO_FLOW, NS).attrib.get(
             ATTR.REF_OBJECT_ID
         )
-
         flows_folder = self.path.parent.parent / "flows"
+        # print(f"flows_folder : {flows_folder}")
         flow_file = flows_folder / f"{ref_flow_uuid}.xml"
+        # print(f"flow_file : {flow_file}")
         self.ref_flow = IlcdFlow(root=ET.parse(flow_file).getroot())
-
         exchange_amount = to_float(
             ref_flow_exchange.findtext(XP.MEAN_AMOUNT, namespaces=NS), positive=True
         )
@@ -188,5 +190,6 @@ class IlcdProcess:
         return self.market
 
     def get_matches(self) -> dict:
+        MATCHES_FOLDER = self.path.parent.parent / "matches"
         matches_path = os.path.join(MATCHES_FOLDER, f"{self.uuid}.json")
         self.matches = read_json_file(matches_path)
