@@ -1,63 +1,75 @@
 # tests/unit/test_cli.py
 import json
 from click.testing import CliRunner
-
 from materia import cli
 
 
-def test_main_default_output_creates_file(monkeypatch, tmp_path):
-    """
-    No --output_path: writes to <input_path>/../output_generic/<uuid>_output.json
-    and echoes a message.
-    """
+def _setup_dirs(tmp_path):
+    gen = tmp_path / "gen"
+    epd = tmp_path / "epds"
+    gen.mkdir()
+    epd.mkdir()
+    return gen, epd
+
+
+def test_default_output(monkeypatch, tmp_path):
+    """No -o flag → writes to ../output_generic/"""
     runner = CliRunner()
-
-    input_dir = tmp_path / "gen"
-    epd_dir = tmp_path / "epds"
-    input_dir.mkdir()
-    epd_dir.mkdir()
-
-    # run_materia now returns (average, uuid)
+    gen, epd = _setup_dirs(tmp_path)
     monkeypatch.setattr(
-        cli, "run_materia", lambda a, b: ({"mass": 1.0}, "uuid-123"), raising=True
+        cli, "run_materia", lambda *_: ({"mass": 1}, "uuid"), raising=True
     )
 
-    result = runner.invoke(cli.main, [str(input_dir), str(epd_dir)])
-    assert result.exit_code == 0
+    result = runner.invoke(cli.main, [str(gen), str(epd)])
+    out_file = gen.parent / "output_generic" / "uuid_output.json"
 
-    out_folder = input_dir.parent / "output_generic"
-    out_file = out_folder / "uuid-123_output.json"
-    assert out_file.exists()
-
-    data = json.loads(out_file.read_text(encoding="utf-8"))
-    assert data == {"mass": 1.0}
-
-    assert "Received path" in result.output
-    assert "No output path provided. File created at" in result.output
-
-
-def test_main_writes_to_given_output(monkeypatch, tmp_path):
-    """
-    With --output_path: writes JSON there and echoes the path.
-    """
-    runner = CliRunner()
-
-    input_dir = tmp_path / "gen"
-    epd_dir = tmp_path / "epds"
-    input_dir.mkdir()
-    epd_dir.mkdir()
-    out_file = tmp_path / "out.json"
-
-    monkeypatch.setattr(
-        cli, "run_materia", lambda a, b: ({"GWP": 2.5}, "abc-uuid"), raising=True
-    )
-
-    result = runner.invoke(
-        cli.main, [str(input_dir), str(epd_dir), "-o", str(out_file)]
-    )
     assert result.exit_code == 0
     assert out_file.exists()
+    assert json.loads(out_file.read_text()) == {"mass": 1}
+    assert "No output path provided" in result.output
 
-    data = json.loads(out_file.read_text(encoding="utf-8"))
-    assert data == {"GWP": 2.5}
-    assert "Output has been written in" in result.output
+
+def test_with_output_path(monkeypatch, tmp_path):
+    """With -o flag → writes exactly there."""
+    runner = CliRunner()
+    gen, epd = _setup_dirs(tmp_path)
+    out = tmp_path / "out.json"
+    monkeypatch.setattr(
+        cli, "run_materia", lambda *_: ({"GWP": 2.5}, "abc"), raising=True
+    )
+
+    result = runner.invoke(cli.main, [str(gen), str(epd), "-o", str(out)])
+    assert result.exit_code == 0
+    assert out.exists()
+    assert json.loads(out.read_text()) == {"GWP": 2.5}
+    assert "Output has been written" in result.output
+
+
+def test_file_input_triggers_mkdir(monkeypatch, tmp_path):
+    """File input → creates parent/output_generic and writes JSON."""
+    runner = CliRunner()
+    gen, epd = _setup_dirs(tmp_path)
+    xml = gen / "p.xml"
+    xml.write_text("<r/>")
+
+    called = {"mkdir": False}
+    real_mkdir = cli.Path.mkdir
+
+    def spy_mkdir(self, *a, **k):
+        if self.name == "output_generic":
+            called["mkdir"] = True
+        return real_mkdir(self, *a, **k)
+
+    monkeypatch.setattr(cli.Path, "mkdir", spy_mkdir, raising=True)
+
+    monkeypatch.setattr(
+        cli, "run_materia", lambda *_: ({"mass": 3}, "uuid2"), raising=True
+    )
+
+    result = runner.invoke(cli.main, [str(xml), str(epd)])
+    out = gen.parent / "output_generic" / "uuid2_output.json"
+
+    assert result.exit_code == 0
+    assert out.exists()
+    assert called["mkdir"] is True
+    assert json.loads(out.read_text()) == {"mass": 3}

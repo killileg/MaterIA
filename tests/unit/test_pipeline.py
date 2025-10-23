@@ -1,51 +1,69 @@
 # tests/unit/test_pipeline.py
 from pathlib import Path
-from materia.epd import pipeline as pl
-import xml.etree.ElementTree as ET
 import types
+import xml.etree.ElementTree as ET
 import pytest
 
+from materia.epd import pipeline as pl
 
-# print(materia.__file__)
-
-
-# from epd.path import GEN_PRODUCTS_FOLDER, EPD_FOLDER
 
 # ------------------------------ gen_xml_objects ------------------------------
 
 
-def test_gen_xml_objects_reads_only_xml(tmp_path: Path):
-    # create two valid XMLs and one non-xml
-    (tmp_path / "a.xml").write_text("<root/>", encoding="utf-8")
-    (tmp_path / "b.xml").write_text("<x><y/></x>", encoding="utf-8")
-    (tmp_path / "ignore.txt").write_text("nope", encoding="utf-8")
+def test_gen_xml_objects_with_folder_reads_xml_only(tmp_path: Path):
+    (tmp_path / "a.xml").write_text("<a/>", encoding="utf-8")
+    (tmp_path / "b.xml").write_text("<b/>", encoding="utf-8")
+    (tmp_path / "skip.txt").write_text("x", encoding="utf-8")
 
-    items = list(pl.gen_xml_objects(tmp_path))
-    assert len(items) == 2
-    # (path, root)
-    assert all(isinstance(p, Path) and isinstance(r, ET.Element) for p, r in items)
-    assert {p.name for p, _ in items} == {"a.xml", "b.xml"}  # order not guaranteed
+    out = list(pl.gen_xml_objects(tmp_path))
+    names = {p.name for p, _ in out}
+    assert names == {"a.xml", "b.xml"}
+    assert all(isinstance(root, ET.Element) for _, root in out)  # parsed roots
+
+
+def test_gen_xml_objects_with_file_uses_parent(tmp_path: Path):
+    (tmp_path / "x1.xml").write_text("<r/>", encoding="utf-8")
+    (tmp_path / "x2.xml").write_text("<r/>", encoding="utf-8")
+    file_inside = tmp_path / "x1.xml"
+
+    out = list(pl.gen_xml_objects(file_inside))
+    names = {p.name for p, _ in out}
+    assert names == {"x1.xml", "x2.xml"}
+
+
+def test_gen_xml_objects_invalid_path_raises(tmp_path: Path):
+    bogus = tmp_path / "does_not_exist.anything"
+    with pytest.raises(ValueError):
+        list(pl.gen_xml_objects(bogus))
+
+
+def test_gen_xml_objects_skips_bad_xml(tmp_path: Path, capsys):
+    (tmp_path / "ok.xml").write_text("<r/>", encoding="utf-8")
+    (tmp_path / "bad.xml").write_text("<r>", encoding="utf-8")  # malformed
+
+    out = list(pl.gen_xml_objects(tmp_path))
+    assert [p.name for p, _ in out] == ["ok.xml"]
+    msg = capsys.readouterr().out
+    assert "Error reading bad.xml" in msg
 
 
 # -------------------------------- gen_epds -----------------------------------
 
 
-def test_gen_epds_wraps_files_into_IlcdProcess(tmp_path: Path, monkeypatch):
-    # prepare real XML files for the folder
+def test_gen_epds_wraps_xmls_in_IlcdProcess(tmp_path: Path, monkeypatch):
     (tmp_path / "p1.xml").write_text("<root id='1'/>", encoding="utf-8")
     (tmp_path / "p2.xml").write_text("<root id='2'/>", encoding="utf-8")
 
-    created = []
+    calls = []
 
     class FakeIlcd:
         def __init__(self, root, path):
-            created.append((path.name, root.tag))
+            calls.append((path.name, root.tag))
 
     monkeypatch.setattr(pl, "IlcdProcess", FakeIlcd, raising=True)
-
-    epds = list(pl.gen_epds(tmp_path))  # <-- pass folder path
-    assert len(epds) == 2
-    assert {n for n, _ in created} == {"p1.xml", "p2.xml"}
+    out = list(pl.gen_epds(tmp_path))
+    assert len(out) == 2
+    assert {n for n, _ in calls} == {"p1.xml", "p2.xml"}
 
 
 # ----------------------------- gen_filtered_epds -----------------------------
@@ -63,37 +81,36 @@ def test_gen_filtered_epds_applies_all_filters():
         def matches(self, epd):
             return self.ok(epd)
 
-    epds = [E(1), E(2), E(3)]
-    filt1 = F(lambda e: e.v >= 2)
-    filt2 = F(lambda e: e.v % 2 == 1)  # keep odd
-    out = list(pl.gen_filtered_epds(epds, [filt1, filt2]))
-    assert [e.v for e in out] == [3]
+    epds = [E(1), E(2), E(3), E(4)]
+    f1 = F(lambda e: e.v >= 2)
+    f2 = F(lambda e: e.v % 2 == 0)
+    out = list(pl.gen_filtered_epds(epds, [f1, f2]))
+    assert [e.v for e in out] == [2, 4]
 
 
 # ---------------------------- gen_locfiltered_epds ---------------------------
 
 
-def test_gen_locfiltered_epds_escalates_and_returns(monkeypatch):
-    # make LocationFilter a simple container with .locations
+def test_gen_locfiltered_epds_escalates_until_found(monkeypatch):
+    # minimal LocationFilter with .locations
     class LF:
         def __init__(self, locs):
             self.locations = set(locs)
 
-    calls = {"n": 0}
+    # First attempt returns [], second attempt returns sentinel
+    attempts = {"n": 0}
 
     def fake_gen_filtered(epds, filters):
-        calls["n"] += 1
-        # empty first time, return something on second call
-        return [] if calls["n"] == 1 else ["FOUND"]
+        attempts["n"] += 1
+        return [] if attempts["n"] == 1 else ["FOUND"]
 
     monkeypatch.setattr(pl, "LocationFilter", LF, raising=True)
     monkeypatch.setattr(pl, "gen_filtered_epds", fake_gen_filtered, raising=True)
     monkeypatch.setattr(pl, "escalate_location_set", lambda s: s | {"EU"}, raising=True)
 
-    # run
     out = list(pl.gen_locfiltered_epds(epd_roots=[1, 2], filters=[LF({"FR"})]))
     assert out == ["FOUND"]
-    assert calls["n"] >= 2  # ensured we escalated once
+    assert attempts["n"] >= 2  # ensured escalation path executed
 
 
 def test_gen_locfiltered_epds_raises_when_not_found(monkeypatch):
@@ -106,50 +123,47 @@ def test_gen_locfiltered_epds_raises_when_not_found(monkeypatch):
     monkeypatch.setattr(pl, "escalate_location_set", lambda s: s, raising=True)
 
     with pytest.raises(pl.NoMatchingEPDError):
-        list(
-            pl.gen_locfiltered_epds(epd_roots=[1], filters=[LF({"XX"})], max_attempts=2)
-        )
+        list(pl.gen_locfiltered_epds([1], [LF({"XX"})], max_attempts=2))
 
 
 # -------------------------------- epd_pipeline -------------------------------
 
 
-def test_epd_pipeline_happy_path(monkeypatch):
-    # Fake process with minimal attributes used by epd_pipeline
+def test_epd_pipeline_happy_path(monkeypatch, tmp_path: Path):
+    # process stub with required attributes
     process = types.SimpleNamespace(
-        matches={"uuids": ["uuid-1"]},
+        matches={"uuids": ["u1"]},
         material_kwargs={"mass": 1.0},
-        market={"FR": 0.6, "DE": 0.4},
+        market={"FR": 0.7, "DE": 0.3},
     )
 
-    # gen_epds -> returns two epd objects with get_lcia_results
-    class EpD:
+    # EPD objects that the pipeline will operate on
+    class EPD:
         def __init__(self, name):
             self.name = name
             self.lcia_results = {"GWP": 1}
 
         def get_lcia_results(self):
-            # simulate the pipeline mutating LCIA results
+            # simulate computation
             self.lcia_results = {"GWP": 2}
 
-    # NEW: gen_epds now takes a folder argument
+    # gen_epds returns two epds
     monkeypatch.setattr(
-        pl, "gen_epds", lambda folder: [EpD("a"), EpD("b")], raising=True
+        pl, "gen_epds", lambda folder: [EPD("a"), EPD("b")], raising=True
     )
-
-    # Filters are built but we don't care about their logic; just accept everything
+    # gen_filtered_epds passes both through (UUID/unit filters abstracted)
     monkeypatch.setattr(
         pl, "gen_filtered_epds", lambda epds, f: list(epds), raising=True
     )
 
-    # average/Material plumbing
+    # average material props → build Material → rescale → to_dict
     monkeypatch.setattr(
         pl, "average_material_properties", lambda epds: {"mass": 2.0}, raising=True
     )
 
     class FakeMat:
         def __init__(self, **kw):
-            self.kw = kw
+            self.kw = dict(kw)
 
         def rescale(self, *_):
             pass
@@ -159,16 +173,14 @@ def test_epd_pipeline_happy_path(monkeypatch):
 
     monkeypatch.setattr(pl, "Material", FakeMat, raising=True)
 
-    # location filtering: return the same epds for each country
+    # each market country gets epds; then impacts averaged and weighted
     monkeypatch.setattr(
         pl, "gen_locfiltered_epds", lambda epds, filters: list(epds), raising=True
     )
-
-    # impacts + weighting
     monkeypatch.setattr(
         pl,
         "average_impacts",
-        lambda lam: {"GWP": sum(d["GWP"] for d in lam)},
+        lambda lst: {"GWP": sum(d["GWP"] for d in lst) / len(lst)},
         raising=True,
     )
     monkeypatch.setattr(
@@ -180,58 +192,37 @@ def test_epd_pipeline_happy_path(monkeypatch):
         raising=True,
     )
 
-    # NEW: pass a dummy EPD folder path (the stubbed gen_epds ignores it)
-    dummy_epd_folder = Path("ignored")
-
-    result = pl.epd_pipeline(process, dummy_epd_folder)
-    # Both epds had GWP promoted to 2; weighted sum = 2*(0.6 + 0.4) = 4
-    assert result == {"weighted_GWP": 4}
-
-
-def test_gen_xml_objects_handles_invalid_xml(tmp_path, capsys):
-    # valid + invalid XML in same folder
-    (tmp_path / "good.xml").write_text("<r/>", encoding="utf-8")
-    (tmp_path / "bad.xml").write_text(
-        "<r>", encoding="utf-8"
-    )  # parse error -> except branch
-
-    out = list(pl.gen_xml_objects(tmp_path))
-    # only the valid one is yielded
-    assert [p.name for p, _ in out] == ["good.xml"]
-
-    # the error was printed by the except block
-    captured = capsys.readouterr().out
-    assert "Error reading bad.xml" in captured
+    # path_to_epd_folder is joined with "processes" inside pipeline (we don't need FS)
+    epd_root = tmp_path  # not used by the stubs, but satisfies the interface
+    result = pl.epd_pipeline(process, epd_root)
+    assert result == {
+        "weighted_GWP": 2
+    }  # 2 epds → GWP=2 per country → weighted sum = 2
 
 
-def test_run_materia_executes_pipeline_minimal(monkeypatch, tmp_path):
-    """
-    Exercise run_materia without touching heavy internals.
-    We stub gen_xml_objects, IlcdProcess and epd_pipeline so the function
-    flows through and returns (weighted, uuid).
-    """
-    from pathlib import Path
-    import xml.etree.ElementTree as ET
+# -------------------------------- run_materia --------------------------------
 
-    # --- product & epd folders
+
+def test_run_materia_executes_pipeline_and_returns_uuid(monkeypatch, tmp_path: Path):
+    # Prepare product folder (input) and epd folder (target)
     prod_dir = tmp_path / "products"
     epd_dir = tmp_path / "epds"
     prod_dir.mkdir()
     epd_dir.mkdir()
 
-    # --- make run_materia see exactly one "generic product" XML
+    # gen_xml_objects should yield exactly one "product" root
     def fake_gen_xml_objects(folder):
-        assert Path(folder) == prod_dir
+        assert Path(folder) == prod_dir  # run_materia passes this in
         yield (prod_dir / "prod.xml", ET.Element("root"))
 
     monkeypatch.setattr(pl, "gen_xml_objects", fake_gen_xml_objects, raising=True)
 
-    # --- lightweight IlcdProcess used by run_materia
+    # IlcdProcess minimal with attributes/methods used in run_materia
     class FakeIlcd:
         def __init__(self, root, path):
             self.root = root
             self.path = path
-            self.uuid = "uuid-1"
+            self.uuid = "uuid-123"
             self.matches = True
             self.market = {"FR": 1.0}
             self.material_kwargs = {"mass": 1.0}
@@ -250,12 +241,10 @@ def test_run_materia_executes_pipeline_minimal(monkeypatch, tmp_path):
 
     monkeypatch.setattr(pl, "IlcdProcess", FakeIlcd, raising=True)
 
-    # --- stub the heavy pipeline to return a deterministic result
-    # Note: epd_pipeline(process, path_to_epd_folder)
+    # pipeline returns the final weighted averages
     monkeypatch.setattr(
-        pl, "epd_pipeline", lambda process, epd_path: {"weighted_GWP": 2}, raising=True
+        pl, "epd_pipeline", lambda process, epd_path: {"GWP": 3.5}, raising=True
     )
 
-    # --- run and assert
-    result = pl.run_materia(prod_dir, epd_dir)
-    assert result == ({"weighted_GWP": 2}, "uuid-1")
+    out = pl.run_materia(prod_dir, epd_dir)
+    assert out == ({"GWP": 3.5}, "uuid-123")

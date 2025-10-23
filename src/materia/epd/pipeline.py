@@ -17,7 +17,13 @@ from materia.core.errors import NoMatchingEPDError
 
 
 def gen_xml_objects(folder_path):
-    folder = Path(folder_path)
+    if folder_path.is_file():  # folder_path is a file
+        folder = Path(folder_path).parent
+    elif folder_path.is_dir():  # folder_path is a folder
+        folder = Path(folder_path)
+    else:
+        raise ValueError("Not a file/folder path")
+
     for xml_file in folder.glob("*.xml"):
         try:
             tree = ET.parse(xml_file)

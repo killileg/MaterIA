@@ -19,7 +19,7 @@ def main(input_path, epd_folder_path, output_path):  # ADD EPD_PATH ARGUMENT
     average, uuid = run_materia(input_path, epd_folder_path)
 
     if output_path:
-        output_path = Path(output_path)  # DOES THIS STEP MAKE SENSE ??
+        output_path = Path(output_path)
         click.echo(f"Output will be written to: {Path(output_path)}")
         # Ensure parent folders exist
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -28,7 +28,12 @@ def main(input_path, epd_folder_path, output_path):  # ADD EPD_PATH ARGUMENT
         )
         click.echo(f"Output has been written in {output_path}")
     else:
-        output_folder = path_gen.parent / "output_generic"
+        if path_gen.is_file():  # path_gen is a file
+            output_folder_temp = Path(path_gen).parent.parent
+        elif path_gen.is_dir():  # path_gen is a folder
+            output_folder_temp = Path(path_gen).parent
+
+        output_folder = output_folder_temp / "output_generic"
         output_folder.mkdir(parents=True, exist_ok=True)
 
         output_file = output_folder / f"{uuid}_output.json"
