@@ -3,12 +3,41 @@ requires = ["setuptools>=68", "setuptools_scm[toml]>=8", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "materia"
-dynamic = ["version"]
+name = "materia-epd"
+version = "0.0.0"  # Dummy version REQUIRED, setuptools_scm will override at build time
+description = "Generic EPD Aggregator"
+authors = [{ name = "Paul Baustert", email = "p.m.baustert@gmail.com" }]
+readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.10"
+dependencies = [
+    "click",
+    "numpy",
+    "pandas",
+    "tqdm",
+    "pycountry",
+    "comtradeapicall"
+]
+license = "MIT"
+license-files = ["LICENSE.txt"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent"
+]
+
+[project.optional-dependencies]
+dev = [
+    "black==23.9.1",
+    "flake8==6.1.0",
+    "pytest==7.4.2",
+    "pytest-cov==4.1.0",
+    "pre-commit==3.4.0",
+    "deptry",
+    "sphinx"
+]
 
 [tool.setuptools_scm]
 version_scheme = "no-guess-dev"
+local_scheme = "dirty-tag"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
@@ -22,3 +51,10 @@ materia = ["data/*.json"]
 [tool.pytest.ini_options]
 addopts = "--cov=materia --cov-report=term-missing --cov-fail-under=100"
 testpaths = ["tests"]
+
+[tool.deptry]
+pep621_dev_dependency_groups = ["dev"]
+extend_exclude = ["docs"]
+
+[tool.deptry.per_rule_ignores]
+DEP003 = ["materia"]
