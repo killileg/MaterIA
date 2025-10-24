@@ -79,7 +79,6 @@ class ATTR:
 
 
 MODULES = ["A1-A3", "C1", "C2", "C3", "C4", "D"]
-CATEGORIES = ["fossil", "biogenic", "lulucf", "total"]
 
 FLOW_PROPERTY_MAPPING = {
     "kg": "93a60a56-a3c8-11da-a746-0800200b9a66",

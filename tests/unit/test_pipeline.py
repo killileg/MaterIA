@@ -18,7 +18,7 @@ def test_gen_xml_objects_with_folder_reads_xml_only(tmp_path: Path):
     out = list(pl.gen_xml_objects(tmp_path))
     names = {p.name for p, _ in out}
     assert names == {"a.xml", "b.xml"}
-    assert all(isinstance(root, ET.Element) for _, root in out)  # parsed roots
+    assert all(isinstance(root, ET.Element) for _, root in out)
 
 
 def test_gen_xml_objects_with_file_uses_parent(tmp_path: Path):
@@ -39,7 +39,7 @@ def test_gen_xml_objects_invalid_path_raises(tmp_path: Path):
 
 def test_gen_xml_objects_skips_bad_xml(tmp_path: Path, capsys):
     (tmp_path / "ok.xml").write_text("<r/>", encoding="utf-8")
-    (tmp_path / "bad.xml").write_text("<r>", encoding="utf-8")  # malformed
+    (tmp_path / "bad.xml").write_text("<r>", encoding="utf-8")
 
     out = list(pl.gen_xml_objects(tmp_path))
     assert [p.name for p, _ in out] == ["ok.xml"]
@@ -92,12 +92,10 @@ def test_gen_filtered_epds_applies_all_filters():
 
 
 def test_gen_locfiltered_epds_escalates_until_found(monkeypatch):
-    # minimal LocationFilter with .locations
     class LF:
         def __init__(self, locs):
             self.locations = set(locs)
 
-    # First attempt returns [], second attempt returns sentinel
     attempts = {"n": 0}
 
     def fake_gen_filtered(epds, filters):
@@ -110,7 +108,7 @@ def test_gen_locfiltered_epds_escalates_until_found(monkeypatch):
 
     out = list(pl.gen_locfiltered_epds(epd_roots=[1, 2], filters=[LF({"FR"})]))
     assert out == ["FOUND"]
-    assert attempts["n"] >= 2  # ensured escalation path executed
+    assert attempts["n"] >= 2
 
 
 def test_gen_locfiltered_epds_raises_when_not_found(monkeypatch):
@@ -126,37 +124,38 @@ def test_gen_locfiltered_epds_raises_when_not_found(monkeypatch):
         list(pl.gen_locfiltered_epds([1], [LF({"XX"})], max_attempts=2))
 
 
-# -------------------------------- epd_pipeline -------------------------------
+# ------------------------------ epd_pipeline ------------------------------ #
 
 
 def test_epd_pipeline_happy_path(monkeypatch, tmp_path: Path):
-    # process stub with required attributes
     process = types.SimpleNamespace(
         matches={"uuids": ["u1"]},
         material_kwargs={"mass": 1.0},
         market={"FR": 0.7, "DE": 0.3},
     )
 
-    # EPD objects that the pipeline will operate on
     class EPD:
         def __init__(self, name):
             self.name = name
             self.lcia_results = {"GWP": 1}
 
         def get_lcia_results(self):
-            # simulate computation
             self.lcia_results = {"GWP": 2}
 
-    # gen_epds returns two epds
     monkeypatch.setattr(
         pl, "gen_epds", lambda folder: [EPD("a"), EPD("b")], raising=True
     )
-    # gen_filtered_epds passes both through (UUID/unit filters abstracted)
+
+    monkeypatch.setattr(pl, "UUIDFilter", lambda m: ("UUIDFilter", m), raising=True)
+    monkeypatch.setattr(
+        pl, "UnitConformityFilter", lambda kw: ("UnitFilter", kw), raising=True
+    )
+    monkeypatch.setattr(pl, "LocationFilter", lambda s: ("LocFilter", s), raising=True)
+
     monkeypatch.setattr(
         pl, "gen_filtered_epds", lambda epds, f: list(epds), raising=True
     )
 
-    # average material props → build Material → rescale → to_dict
     monkeypatch.setattr(
         pl, "average_material_properties", lambda epds: {"mass": 2.0}, raising=True
     )
@@ -169,63 +168,62 @@ def test_epd_pipeline_happy_path(monkeypatch, tmp_path: Path):
             pass
 
         def to_dict(self):
-            return self.kw
+            return dict(self.kw)
 
     monkeypatch.setattr(pl, "Material", FakeMat, raising=True)
 
-    # each market country gets epds; then impacts averaged and weighted
     monkeypatch.setattr(
         pl, "gen_locfiltered_epds", lambda epds, filters: list(epds), raising=True
     )
+
     monkeypatch.setattr(
         pl,
         "average_impacts",
-        lambda lst: {"GWP": sum(d["GWP"] for d in lst) / len(lst)},
+        lambda lcia_list: {"GWP": sum(d["GWP"] for d in lcia_list) / len(lcia_list)},
         raising=True,
     )
+
     monkeypatch.setattr(
         pl,
         "weighted_averages",
-        lambda market, imp: {
-            "weighted_GWP": sum(imp[c]["GWP"] * w for c, w in market.items())
-        },
+        lambda market, imp: {"GWP": sum(imp[c]["GWP"] * w for c, w in market.items())},
         raising=True,
     )
 
-    # path_to_epd_folder is joined with "processes" inside pipeline (we don't need FS)
-    epd_root = tmp_path  # not used by the stubs, but satisfies the interface
-    result = pl.epd_pipeline(process, epd_root)
-    assert result == {
-        "weighted_GWP": 2
-    }  # 2 epds → GWP=2 per country → weighted sum = 2
+    avg_props, avg_gwps = pl.epd_pipeline(process, tmp_path)
+
+    assert avg_props == {"mass": 2.0}
+    assert avg_gwps == {"GWP": 2.0}
 
 
-# -------------------------------- run_materia --------------------------------
+# ------------------------------ run_materia ------------------------------- #
 
 
-def test_run_materia_executes_pipeline_and_returns_uuid(monkeypatch, tmp_path: Path):
-    # Prepare product folder (input) and epd folder (target)
+def test_run_materia_executes_pipeline_and_writes(monkeypatch, tmp_path: Path):
     prod_dir = tmp_path / "products"
     epd_dir = tmp_path / "epds"
+    out_dir = tmp_path / "out"
     prod_dir.mkdir()
     epd_dir.mkdir()
+    out_dir.mkdir()
 
-    # gen_xml_objects should yield exactly one "product" root
     def fake_gen_xml_objects(folder):
-        assert Path(folder) == prod_dir  # run_materia passes this in
+        assert Path(folder) == prod_dir
         yield (prod_dir / "prod.xml", ET.Element("root"))
 
     monkeypatch.setattr(pl, "gen_xml_objects", fake_gen_xml_objects, raising=True)
 
-    # IlcdProcess minimal with attributes/methods used in run_materia
     class FakeIlcd:
         def __init__(self, root, path):
             self.root = root
             self.path = path
             self.uuid = "uuid-123"
             self.matches = True
-            self.market = {"FR": 1.0}
             self.material_kwargs = {"mass": 1.0}
+            self.market = {"FR": 1.0}
+            self.material = None
+            self._write_called = False
+            self._write_args = None
 
         def get_ref_flow(self):
             pass
@@ -239,12 +237,25 @@ def test_run_materia_executes_pipeline_and_returns_uuid(monkeypatch, tmp_path: P
         def get_matches(self):
             pass
 
+        def write_process(self, gwps, output_path):
+            self._write_called = True
+            self._write_args = (gwps, output_path)
+
     monkeypatch.setattr(pl, "IlcdProcess", FakeIlcd, raising=True)
 
-    # pipeline returns the final weighted averages
-    monkeypatch.setattr(
-        pl, "epd_pipeline", lambda process, epd_path: {"GWP": 3.5}, raising=True
-    )
+    epd_return_avg_props = {"mass": 42.0}
+    epd_return_avg_gwps = {"GWP": 3.5}
 
-    out = pl.run_materia(prod_dir, epd_dir)
-    assert out == ({"GWP": 3.5}, "uuid-123")
+    def fake_epd_pipeline(process, path_to_epd_folder):
+        assert path_to_epd_folder == epd_dir
+        return epd_return_avg_props, epd_return_avg_gwps
+
+    monkeypatch.setattr(pl, "epd_pipeline", fake_epd_pipeline, raising=True)
+
+    class FakeMaterial:
+        def __init__(self, **kw):
+            self.kw = kw
+
+    monkeypatch.setattr(pl, "Material", FakeMaterial, raising=True)
+
+    pl.run_materia(prod_dir, epd_dir, out_dir)

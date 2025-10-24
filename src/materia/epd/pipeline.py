@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from pprint import pprint
 
 from materia.epd.models import IlcdProcess
 from materia.epd.filters import UUIDFilter, UnitConformityFilter, LocationFilter
@@ -17,9 +16,9 @@ from materia.core.errors import NoMatchingEPDError
 
 
 def gen_xml_objects(folder_path):
-    if folder_path.is_file():  # folder_path is a file
+    if folder_path.is_file():
         folder = Path(folder_path).parent
-    elif folder_path.is_dir():  # folder_path is a folder
+    elif folder_path.is_dir():
         folder = Path(folder_path)
     else:
         raise ValueError("Not a file/folder path")
@@ -60,9 +59,7 @@ def gen_locfiltered_epds(epd_roots, filters, max_attempts=4):
 
 
 def epd_pipeline(process: IlcdProcess, path_to_epd_folder: Path):
-    EPD_FOLDER = Path(path_to_epd_folder) / "processes"
-
-    epds = gen_epds(EPD_FOLDER)
+    epds = gen_epds(path_to_epd_folder)
 
     filters = []
     if process.matches:
@@ -74,11 +71,10 @@ def epd_pipeline(process: IlcdProcess, path_to_epd_folder: Path):
     for epd in filtered_epds:
         epd.get_lcia_results()
 
-    avg_material = average_material_properties(filtered_epds)
-    mat = Material(**avg_material)
+    avg_properties = average_material_properties(filtered_epds)
+    mat = Material(**avg_properties)
     mat.rescale(process.material_kwargs)
-    avg_material = mat.to_dict()
-    pprint(avg_material)
+    avg_properties = mat.to_dict()
 
     market_epds = {
         country: list(gen_locfiltered_epds(filtered_epds, [LocationFilter({country})]))
@@ -90,17 +86,19 @@ def epd_pipeline(process: IlcdProcess, path_to_epd_folder: Path):
         for country, epds in market_epds.items()
     }
 
-    return weighted_averages(process.market, market_impacts)
+    avg_gwps = weighted_averages(process.market, market_impacts)
+
+    return avg_properties, avg_gwps
 
 
-def run_materia(path_to_gen_folder: Path, path_to_epd_folder: Path):
-    GEN_PRODUCTS_FOLDER = Path(path_to_gen_folder)  # path to GenPro + "generic"
-    for path, root in gen_xml_objects(GEN_PRODUCTS_FOLDER):  # GEN_PRODUCTS_FOLDER
+def run_materia(path_to_gen_folder: Path, path_to_epd_folder: Path, output_path: Path):
+    for path, root in gen_xml_objects(path_to_gen_folder):
         process = IlcdProcess(root=root, path=path)
         process.get_ref_flow()
         process.get_hs_class()
         process.get_market()
         process.get_matches()
         if process.matches:
-            weighted = epd_pipeline(process, path_to_epd_folder)
-            return weighted, process.uuid
+            avg_properties, avg_gwps = epd_pipeline(process, path_to_epd_folder)
+            process.material = Material(**avg_properties)
+            process.write_process(avg_gwps, output_path)

@@ -22,12 +22,24 @@ def write_json_file(path, data) -> bool:
         return False
 
 
-def read_xml_root(path):
-    """Return XML root element or None if invalid."""
+def read_xml_root(path: Path | str):
     try:
         return ET.parse(path).getroot()
-    except (FileNotFoundError, ET.ParseError):
+    except (FileNotFoundError, ET.ParseError) as e:
+        print(f"Error reading XML root from {path}: {e}")
         return None
+
+
+def write_xml_root(root: ET.Element, path: Path | str) -> bool:
+    """Write XML root to file. Returns True if successful."""
+    try:
+        tree = ET.ElementTree(root)
+        ET.indent(tree, space="  ", level=0)
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
+        tree.write(path, encoding="utf-8", xml_declaration=True)
+        return True
+    except Exception:
+        return False
 
 
 def gen_json_objects(folder_path):
