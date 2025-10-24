@@ -29,13 +29,12 @@ repos:
         pass_filenames: false
         always_run: true
 
-  - repo: local
-    hooks:
       - id: coverage-badge
         name: Generate coverage badge
-        entry: bash -c 'coverage-badge -o coverage.svg || echo "No coverage data found"'
+        entry: python -m coverage_badge -f -o coverage.svg
         language: system
         pass_filenames: false
+        always_run: true
 
   - repo: local
     hooks:
