@@ -1,5 +1,6 @@
-# test_io_files_min.py
+# tests/unit/test_io_files_min.py
 from materia.io import files as mod
+import xml.etree.ElementTree as ET  # <-- add this import
 
 
 def test_io_files_full_coverage(tmp_path):
@@ -35,6 +36,22 @@ def test_io_files_full_coverage(tmp_path):
     good_xml.write_text("<root><c/></root>", encoding="utf-8")
     root = mod.read_xml_root(good_xml)
     assert root.tag == "root"
+
+    # ---- write_xml_root ----
+    # success -> True and file is parseable
+    out_xml = tmp_path / "out_dir" / "ok.xml"
+    ok_root = ET.Element("r")
+    assert mod.write_xml_root(ok_root, out_xml) is True
+    assert out_xml.exists()
+    parsed = ET.parse(out_xml).getroot()
+    assert parsed.tag == "r"
+
+    # failure -> False (attempt to write under a path that is a file, not a directory)
+    blocker = tmp_path / "blocker"
+    blocker.write_text("not a dir", encoding="utf-8")  # create a file
+    impossible = blocker / "child.xml"  # looks like a dir, but parent is a file
+    bad_root = ET.Element("x")
+    assert mod.write_xml_root(bad_root, impossible) is False
 
     # ---- gen_json_objects ----
     folder = tmp_path / "jsons"

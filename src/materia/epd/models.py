@@ -19,7 +19,7 @@ from materia.core.constants import (
 # from materia.io.paths import MATCHES_FOLDER
 from materia.resources import get_market_shares, get_indicator_synonyms
 from materia.core.utils import to_float
-from materia.io.files import read_json_file
+from materia.io.files import read_json_file, write_xml_root
 from materia.geo.locations import ilcd_to_iso_location
 from materia.core.physics import Material
 from materia.metrics.normalize import normalize_module_values
@@ -123,9 +123,8 @@ class IlcdProcess:
             ATTR.REF_OBJECT_ID
         )
         flows_folder = self.path.parent.parent / "flows"
-        # print(f"flows_folder : {flows_folder}")
         flow_file = flows_folder / f"{ref_flow_uuid}.xml"
-        # print(f"flow_file : {flow_file}")
+
         self.ref_flow = IlcdFlow(root=ET.parse(flow_file).getroot())
         exchange_amount = to_float(
             ref_flow_exchange.findtext(XP.MEAN_AMOUNT, namespaces=NS), positive=True
@@ -193,3 +192,50 @@ class IlcdProcess:
         MATCHES_FOLDER = self.path.parent.parent / "matches"
         matches_path = os.path.join(MATCHES_FOLDER, f"{self.uuid}.json")
         self.matches = read_json_file(matches_path)
+
+    def write_process(
+        self, results: dict[str, dict[str, float]], out_path: Path
+    ) -> bool:
+        def _get_attr_local(el: ET.Element, local: str):
+            for k, v in el.attrib.items():
+                if k.rsplit("}", 1)[-1] == local:
+                    return v
+            return None
+
+        lcia_map = {
+            next(
+                (
+                    sd.text.strip()
+                    for sd in r.findall(
+                        f"{XP.REF_TO_LCIA_METHOD}/{XP.SHORT_DESC}", EPD_NS
+                    )
+                    if sd.attrib.get(ATTR.LANG) == "en"
+                ),
+                "Unknown",
+            ): r
+            for r in self.root.findall(XP.LCIA_RESULT, EPD_NS)
+        }
+
+        for ind, stages in results.items():
+            r = lcia_map.get(ind)
+            if r is None:
+                continue
+
+            by_module = {}
+            for el in r.findall(XP.AMOUNT, EPD_NS):
+                mod = (
+                    _get_attr_local(el, "module")
+                    or _get_attr_local(el, "phase")
+                    or _get_attr_local(el, "stageId")
+                    or _get_attr_local(el, "lifecycleModule")
+                )
+                if mod:
+                    by_module[mod] = el
+
+            for stage, val in stages.items():
+                el = by_module.get(stage)
+                if el is not None:
+                    el.text = str(float(val))
+
+        file_path = out_path / "processes" / f"{self.uuid}.xml"
+        return write_xml_root(self.root, file_path)
