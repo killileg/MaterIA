@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "materia-epd"
-version = "0.0.0"  # Dummy version REQUIRED, setuptools_scm will override at build time
+dynamic = ["version"]
 description = "Generic EPD Aggregator"
 authors = [{ name = "Paul Baustert", email = "p.m.baustert@gmail.com" }]
 readme = { file = "README.md", content-type = "text/markdown" }
@@ -21,6 +21,9 @@ license = "MIT"
 license-files = ["LICENSE.txt"]
 classifiers = [
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Operating System :: OS Independent"
 ]
 
@@ -32,6 +35,7 @@ dev = [
     "pytest-cov==4.1.0",
     "pre-commit==3.4.0",
     "deptry",
+    "coverage-badge",
     "sphinx"
 ]
 
