@@ -31,10 +31,3 @@ jobs:
       - name: Run tests with coverage
         run: |
           pytest --cov=materia --cov-report=xml
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          files: ./coverage.xml
-          flags: ${{ matrix.os }}
-          name: codecov-${{ matrix.os }}

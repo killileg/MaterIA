@@ -7,6 +7,7 @@ include pytest.ini
 include requirements-dev.txt
 include tox.ini
 include deptry.toml
+include coverage.svg
 
 include *.txt
 include *.yaml

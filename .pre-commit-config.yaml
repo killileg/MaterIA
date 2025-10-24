@@ -24,10 +24,18 @@ repos:
     hooks:
       - id: pytest-with-coverage
         name: Run Pytest with Coverage
-        entry: pytest
+        entry: pytest --cov=materia --cov-report=term --cov-report=xml
         language: system
         pass_filenames: false
         always_run: true
+
+  - repo: local
+    hooks:
+      - id: coverage-badge
+        name: Generate coverage badge
+        entry: bash -c 'coverage-badge -o coverage.svg || echo "No coverage data found"'
+        language: system
+        pass_filenames: false
 
   - repo: local
     hooks:
