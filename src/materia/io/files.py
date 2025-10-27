@@ -1,6 +1,7 @@
-from pathlib import Path
 import json
+from pathlib import Path
 import xml.etree.ElementTree as ET
+from materia.core.utils import sort_key
 
 
 def read_json_file(path):
@@ -56,3 +57,15 @@ def gen_xml_objects(folder_path):
         root = read_xml_root(file)
         if root is not None:
             yield file, root
+
+
+def latest_flow_file(flows_folder: Path, uuid: str) -> Path:
+    """
+    Return the flow XML file with the most recent version.
+    Handles names like {uuid}.xml or {uuid}_version1.0.2.xml.
+    """
+    candidates = list(flows_folder.glob(f"{uuid}*.xml"))
+    if not candidates:
+        raise FileNotFoundError(f"No flow file found for uuid={uuid} in {flows_folder}")
+
+    return max(candidates, key=sort_key)
