@@ -2,6 +2,11 @@
 Changelog
 =========
 
+Version 0.2.1 (2025-10-27)
+===========
+
+- Fix version reading issue.
+
 Version 0.2.0 (2025-10-24)
 ===========
 
