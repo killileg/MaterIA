@@ -46,3 +46,21 @@ def test_to_float_type_error_and_value_error_handling():
             raise ValueError("cannot convert")
 
     assert utils.to_float(Bad()) is None
+
+
+def test_extract_version_returns_tuple():
+    """Ensure that version numbers are correctly extracted and split into ints."""
+    # Simple pattern
+    assert utils._extract_version("file_version1.0.2.xml") == (1, 0, 2)
+
+    # With optional dot after 'version'
+    assert utils._extract_version("data_version.10.4.txt") == (10, 4)
+
+    # Case-insensitive and with prefix/suffix
+    assert utils._extract_version("REPORT_Version2.5.0-extra") == (2, 5, 0)
+
+
+def test_extract_version_returns_none_when_no_match():
+    """Ensure that filenames without version pattern return None."""
+    assert utils._extract_version("file_nover.txt") is None
+    assert utils._extract_version("my_versionlessfile1_2_3.txt") is None

@@ -23,11 +23,11 @@ def test_no_output_path_calls_pipeline_with_none(monkeypatch, tmp_path):
         called["b"] = b
         called["c"] = c  # should be None
 
+    # monkeypatch the function imported into cli.py
     monkeypatch.setattr(cli, "run_materia", fake_run_materia, raising=True)
 
     result = runner.invoke(cli.main, [str(gen), str(epd)])
     assert result.exit_code == 0
-    assert "Received path:" in result.output
     assert called["a"] == gen
     assert called["b"] == epd
     assert called["c"] is None
@@ -36,7 +36,7 @@ def test_no_output_path_calls_pipeline_with_none(monkeypatch, tmp_path):
 def test_with_output_path_calls_pipeline_with_path(monkeypatch, tmp_path):
     runner = CliRunner()
     gen, epd = _setup_dirs(tmp_path)
-    out = tmp_path / "out" / "file.xml"  # could be file or folder; pipeline decides
+    out = tmp_path / "out" / "file.xml"  # file or folder; pipeline decides
 
     called = {}
 

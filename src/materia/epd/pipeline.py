@@ -102,3 +102,4 @@ def run_materia(path_to_gen_folder: Path, path_to_epd_folder: Path, output_path:
             avg_properties, avg_gwps = epd_pipeline(process, path_to_epd_folder)
             process.material = Material(**avg_properties)
             process.write_process(avg_gwps, output_path)
+            print("One more generic epd completed")

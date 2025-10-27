@@ -4,6 +4,7 @@ omit =
     src/materia/skeleton.py
     src/materia/__init__.py
     src/materia/io/__init__.py
+    src/materia/_version.py
 
 [report]
 show_missing = True

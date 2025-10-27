@@ -19,7 +19,7 @@ from materia.core.constants import (
 # from materia.io.paths import MATCHES_FOLDER
 from materia.resources import get_market_shares, get_indicator_synonyms
 from materia.core.utils import to_float
-from materia.io.files import read_json_file, write_xml_root
+from materia.io.files import read_json_file, write_xml_root, latest_flow_file
 from materia.geo.locations import ilcd_to_iso_location
 from materia.core.physics import Material
 from materia.metrics.normalize import normalize_module_values
@@ -123,7 +123,8 @@ class IlcdProcess:
             ATTR.REF_OBJECT_ID
         )
         flows_folder = self.path.parent.parent / "flows"
-        flow_file = flows_folder / f"{ref_flow_uuid}.xml"
+        # flow_file = flows_folder / f"{ref_flow_uuid}.xml"
+        flow_file = latest_flow_file(flows_folder, ref_flow_uuid)
 
         self.ref_flow = IlcdFlow(root=ET.parse(flow_file).getroot())
         exchange_amount = to_float(
