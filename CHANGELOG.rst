@@ -2,6 +2,16 @@
 Changelog
 =========
 
+Version 0.2.3 (2025-10-27)
+===========
+
+- Correct coverage badge on pypi.
+
+Version 0.2.2 (2025-10-27)
+===========
+
+- Add correct readme and Changelog file.
+
 Version 0.2.1 (2025-10-27)
 ===========
 

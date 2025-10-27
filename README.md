@@ -1,7 +1,7 @@
 # Generic EPD Aggregator
 
 [![Build](https://github.com/killileg/MaterIA/actions/workflows/ci.yml/badge.svg?branch=dev)](https://github.com/killileg/MaterIA/actions/workflows/ci.yml)
-![Coverage](coverage.svg)
+![Coverage](https://raw.githubusercontent.com/killileg/MaterIA/main/coverage.svg)
 [![PyPI](https://img.shields.io/pypi/v/materia-epd.svg)](https://pypi.org/project/materia-epd/)
 [![Python](https://img.shields.io/pypi/pyversions/materia-epd.svg)](https://pypi.org/project/materia-epd/)
 [![License](https://img.shields.io/github/license/killileg/MaterIA?branch=dev)](https://github.com/killileg/MaterIA/blob/dev/LICENSE.txt)
@@ -39,7 +39,7 @@ Here’s a minimal example:
 python -m materia <generic_processes_dir> <epd_processes_dir> -o <output_dir>
 ```
 
-Note the you need to provide a \matches folder in the generic data folder to link generic products and EPDs. .json files are named after corresponding generic products and should be strucured as follows:
+Note that you need to point to the \root\provesses folders and need to provide a \matches folder in the generic data folder to link generic products and EPDs. The .json files are named after corresponding generic products and should be strucured as follows:
 
 
 ```json
@@ -53,3 +53,4 @@ Note the you need to provide a \matches folder in the generic data folder to lin
   ]
 }
 ```
+where the provided uuids link to the process files of the EPDs that match.
