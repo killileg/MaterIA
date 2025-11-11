@@ -134,6 +134,20 @@ PROPERTIES = (
     "weight_per_piece",
 )
 
+MASS_KWARGS = {
+    "surface": None,
+    "mass": 1.0,
+    "unit_count": None,
+    "weight_per_piece": None,
+    "length": None,
+    "layer_thickness": None,
+    "linear_density": None,
+    "cross_sectional_area": None,
+    "gross_density": None,
+    "grammage": None,
+    "volume": None,
+}
+
 ACCEPTED_RESCALINGS = [
     {"mass"},
     {"volume"},

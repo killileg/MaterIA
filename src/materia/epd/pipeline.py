@@ -13,6 +13,7 @@ from materia.metrics.averaging import (
 )
 from materia.core.physics import Material
 from materia.core.errors import NoMatchingEPDError
+from materia.core.constants import MASS_KWARGS
 
 
 def gen_xml_objects(folder_path):
@@ -68,8 +69,22 @@ def epd_pipeline(process: IlcdProcess, path_to_epd_folder: Path):
         filters.append(UnitConformityFilter(process.material_kwargs))
 
     filtered_epds = list(gen_filtered_epds(epds, filters))
+
+    if len(filtered_epds) == 0:
+        print(f"{process.uuid}: switching to mass-based functional unit")
+        process.material_kwargs = MASS_KWARGS
+        filters = [f for f in filters if not isinstance(f, UnitConformityFilter)]
+        filters.append(UnitConformityFilter(process.material_kwargs))
+        epds = gen_epds(path_to_epd_folder)
+        filtered_epds = list(gen_filtered_epds(epds, filters))
+
+    if len(filtered_epds) == 0:
+        return None, None
+
     for epd in filtered_epds:
         epd.get_lcia_results()
+        # print(epd.uuid)
+        # pprint(epd.lcia_results)
 
     avg_properties = average_material_properties(filtered_epds)
     mat = Material(**avg_properties)
@@ -99,7 +114,11 @@ def run_materia(path_to_gen_folder: Path, path_to_epd_folder: Path, output_path:
         process.get_market()
         process.get_matches()
         if process.matches:
+            print(f"{process.uuid}: processing")
             avg_properties, avg_gwps = epd_pipeline(process, path_to_epd_folder)
-            process.material = Material(**avg_properties)
-            process.write_process(avg_gwps, output_path)
-            print("One more generic epd completed")
+            if avg_properties is None and avg_gwps is None:
+                print(f"{process.uuid}: cannot be completed\n")
+            else:
+                process.material = Material(**avg_properties)
+                process.write_process(avg_gwps, output_path)
+                print(f"{process.uuid}: completed\n")
