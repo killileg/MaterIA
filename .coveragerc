@@ -1,10 +1,10 @@
 # .coveragerc
 [run]
 omit =
-    src/materia/skeleton.py
-    src/materia/__init__.py
-    src/materia/io/__init__.py
-    src/materia/_version.py
+    src/materia_epd/skeleton.py
+    src/materia_epd/__init__.py
+    src/materia_epd/io/__init__.py
+    src/materia_epd/_version.py
 
 [report]
 show_missing = True
