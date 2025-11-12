@@ -3,5 +3,6 @@
   "Name": "Uganda",
   "Class": "Country",
   "Parent": "Eastern Africa",
-  "Children": null
+  "Children": null,
+  "comtradeID": 800
 }

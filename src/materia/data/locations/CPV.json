@@ -3,5 +3,6 @@
   "Name": "Cabo Verde",
   "Class": "Country",
   "Parent": "Western Africa",
-  "Children": null
+  "Children": null,
+  "comtradeID": 132
 }

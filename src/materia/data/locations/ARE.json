@@ -3,5 +3,6 @@
   "Name": "United Arab Emirates",
   "Class": "Country",
   "Parent": "Western Asia",
-  "Children": null
+  "Children": null,
+  "comtradeID": 784
 }

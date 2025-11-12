@@ -3,5 +3,6 @@
   "Name": "New Caledonia",
   "Class": "Country",
   "Parent": "Melanesia",
-  "Children": null
+  "Children": null,
+  "comtradeID": 540
 }

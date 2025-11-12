@@ -3,5 +3,6 @@
   "Name": "Armenia",
   "Class": "Country",
   "Parent": "Western Asia",
-  "Children": null
+  "Children": null,
+  "comtradeID": 51
 }

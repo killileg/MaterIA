@@ -3,5 +3,6 @@
   "Name": "Comoros",
   "Class": "Country",
   "Parent": "Eastern Africa",
-  "Children": null
+  "Children": null,
+  "comtradeID": 174
 }

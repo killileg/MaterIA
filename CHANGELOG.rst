@@ -2,6 +2,12 @@
 Changelog
 =========
 
+Version 0.2.4 (2025-11-11)
+===========
+
+- Add robust functionality to deal with cases of no appropriate epd data.
+
+
 Version 0.2.3 (2025-10-27)
 ===========
 

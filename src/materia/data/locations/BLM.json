@@ -3,5 +3,6 @@
   "Name": "Saint Barthélemy",
   "Class": "Country",
   "Parent": "Caribbean",
-  "Children": null
+  "Children": null,
+  "comtradeID": 652
 }

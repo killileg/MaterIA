@@ -3,5 +3,6 @@
   "Name": "Bhutan",
   "Class": "Country",
   "Parent": "Southern Asia",
-  "Children": null
+  "Children": null,
+  "comtradeID": 64
 }

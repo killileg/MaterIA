@@ -3,5 +3,6 @@
   "Name": "Solomon Islands",
   "Class": "Country",
   "Parent": "Melanesia",
-  "Children": null
+  "Children": null,
+  "comtradeID": 90
 }

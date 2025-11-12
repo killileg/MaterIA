@@ -3,5 +3,6 @@
   "Name": "Grenada",
   "Class": "Country",
   "Parent": "Caribbean",
-  "Children": null
+  "Children": null,
+  "comtradeID": 308
 }

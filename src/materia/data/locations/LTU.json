@@ -3,5 +3,6 @@
   "Name": "Lithuania",
   "Class": "Country",
   "Parent": "Northern Europe",
-  "Children": null
+  "Children": null,
+  "comtradeID": 440
 }

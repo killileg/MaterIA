@@ -3,5 +3,6 @@
   "Name": "Costa Rica",
   "Class": "Country",
   "Parent": "Central America",
-  "Children": null
+  "Children": null,
+  "comtradeID": 188
 }

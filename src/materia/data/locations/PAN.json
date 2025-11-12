@@ -3,5 +3,6 @@
   "Name": "Panama",
   "Class": "Country",
   "Parent": "Central America",
-  "Children": null
+  "Children": null,
+  "comtradeID": 591
 }

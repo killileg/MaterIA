@@ -3,5 +3,6 @@
   "Name": "Fiji",
   "Class": "Country",
   "Parent": "Melanesia",
-  "Children": null
+  "Children": null,
+  "comtradeID": 242
 }

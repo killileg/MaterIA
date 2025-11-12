@@ -3,5 +3,6 @@
   "Name": "Senegal",
   "Class": "Country",
   "Parent": "Western Africa",
-  "Children": null
+  "Children": null,
+  "comtradeID": 686
 }

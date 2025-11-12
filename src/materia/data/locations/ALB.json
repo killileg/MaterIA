@@ -3,5 +3,6 @@
   "Name": "Albania",
   "Class": "Country",
   "Parent": "Southern Europe",
-  "Children": null
+  "Children": null,
+  "comtradeID": 8
 }

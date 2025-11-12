@@ -3,5 +3,6 @@
   "Name": "Bolivia (Plurinational State of)",
   "Class": "Country",
   "Parent": "South America",
-  "Children": null
+  "Children": null,
+  "comtradeID": 68
 }

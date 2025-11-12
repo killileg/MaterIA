@@ -3,5 +3,6 @@
   "Name": "Turkmenistan",
   "Class": "Country",
   "Parent": "Central Asia",
-  "Children": null
+  "Children": null,
+  "comtradeID": 795
 }

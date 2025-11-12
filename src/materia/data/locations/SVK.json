@@ -3,5 +3,6 @@
   "Name": "Slovakia",
   "Class": "Country",
   "Parent": "Eastern Europe",
-  "Children": null
+  "Children": null,
+  "comtradeID": 703
 }

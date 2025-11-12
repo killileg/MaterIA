@@ -3,21 +3,9 @@ from __future__ import annotations
 
 from functools import lru_cache
 from importlib.resources import as_file, files
-from pathlib import Path
 
 from materia.io import files as io_files
 from materia.io.paths import USER_DATA_DIR
-
-
-def get_data_file(filename: str, subfolder: str = "") -> Path:
-    """Return path to user data if it exists, else fallback to package data."""
-    user_file = USER_DATA_DIR / subfolder / filename
-    if user_file.exists():
-        return user_file
-
-    resource = files(__package__).joinpath("data", subfolder, filename)
-    with as_file(resource) as path:
-        return path
 
 
 @lru_cache(maxsize=None)
@@ -49,24 +37,50 @@ def get_indicator_synonyms():
 
 
 @lru_cache(maxsize=1)
-def get_market_shares(hs_code: str):
-    """Load market share data for a given HS code, preferring user data."""
-    path = get_data_file(f"{hs_code}.json", subfolder="market_shares")
-    data = io_files.read_json_file(path)
-    if data is None:
-        raise ValueError(f"Invalid or missing market share data for HS code {hs_code}")
+def get_market_shares(loc_code: str, hs_code: str):
+    filename = f"{hs_code}.json"
+    subfolder = f"market_shares/{loc_code}"
+
+    resource = files(__package__).joinpath("data", subfolder, filename)
+    if resource.is_file():
+        with as_file(resource) as path:
+            data = io_files.read_json_file(path)
+            if data is not None:
+                return data
+
+    user_file = USER_DATA_DIR / subfolder / filename
+    if user_file.exists():
+        data = io_files.read_json_file(user_file)
+        if data is not None:
+            return data
+
+    from materia.market.market import generate_market
+
+    data = generate_market(loc_code, hs_code)
+    user_file.parent.mkdir(parents=True, exist_ok=True)
+    io_files.write_json_file(user_file, data)
+    print(f"Market share for imports of {hs_code} to {loc_code} stored in {user_file}.")
     return data
 
 
+def get_comtrade_api_key():
+    api_file = USER_DATA_DIR / "comtrade_api_key.json"
+    if api_file.exists():
+        data = io_files.read_json_file(api_file)
+        if data and "apikey" in data:
+            return data["apikey"]
+
+    api_key = input("Enter your Comtrade API key: ").strip()
+    if not api_key:
+        raise ValueError("API key cannot be empty.")
+
+    api_file.parent.mkdir(parents=True, exist_ok=True)
+    io_files.write_json_file(api_file, {"apikey": api_key})
+    print(f"API key stored in {api_file}.")
+
+    return api_key
+
+
 @lru_cache(maxsize=1)
-def get_location_data(location_code: str):
-    """Lazily load and cache location data for a given location code."""
-    return load_json_from_package("locations", f"{location_code}.json")
-
-
-def update_user_data(subfolder: str, filename: str, data: dict) -> None:
-    """Save user-updated data to the ~/.materia/data folder."""
-    target_dir = USER_DATA_DIR / subfolder
-    target_dir.mkdir(parents=True, exist_ok=True)
-    target_file = target_dir / filename
-    io_files.write_json_file(target_file, data)
+def get_location_data(loc_code: str):
+    return load_json_from_package("locations", f"{loc_code}.json")

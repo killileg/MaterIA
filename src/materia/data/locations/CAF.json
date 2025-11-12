@@ -3,5 +3,6 @@
   "Name": "Central African Republic",
   "Class": "Country",
   "Parent": "Middle Africa",
-  "Children": null
+  "Children": null,
+  "comtradeID": 140
 }

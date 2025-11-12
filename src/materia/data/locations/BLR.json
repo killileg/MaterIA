@@ -3,5 +3,6 @@
   "Name": "Belarus",
   "Class": "Country",
   "Parent": "Eastern Europe",
-  "Children": null
+  "Children": null,
+  "comtradeID": 112
 }

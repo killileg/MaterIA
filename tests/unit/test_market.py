@@ -1,111 +1,109 @@
-# tests/unit/test_market.py
-import sys
-import types
+# test_trade_module.py
 import pandas as pd
-from pathlib import Path
+import pytest
+from unittest.mock import patch
 
-# ---- Fake API module injected before importing updater ----
-FakeAPI = types.SimpleNamespace()
-FakeAPI.payload = pd.DataFrame([{"x": 1}, {"x": 2}])
-FakeAPI.exc = None
+import materia.market.market as tm
 
 
-def _fake_getFinalData(key, **params):
-    assert key == "FAKE_API_KEY"
-    if FakeAPI.exc:
-        raise FakeAPI.exc
-    return FakeAPI.payload
+def test_fetch_trade_data_success(monkeypatch):
+    df = pd.DataFrame({"x": [1]})
+    with patch("materia.market.market.get_comtrade_api_key", return_value="KEY"), patch(
+        "materia.market.market.get_location_data", return_value={"comtradeID": 442}
+    ), patch("materia.market.market.C.TRADE_YEARS", ["2020", "2021"]), patch(
+        "materia.market.market.C.TRADE_FLOW", "M"
+    ), patch(
+        "materia.market.market.comtradeapicall.getFinalData", return_value=df
+    ) as mget, patch(
+        "materia.market.market.time.sleep"
+    ) as msleep:
+        out = tm.fetch_trade_data_for_hs_code("LU", "0101")
+        assert isinstance(out, pd.DataFrame) and not out.empty
+        mget.assert_called_once()
+        msleep.assert_called_once_with(1)
 
 
-FakeAPI.getFinalData = _fake_getFinalData
-sys.modules["comtradeapicall"] = FakeAPI
-
-from materia.market import updater as up  # noqa: E402
-
-
-def test_get_unique_hs_codes(monkeypatch, tmp_path):
-    # Replace the whole IO_PATHS module with a minimal stub exposing GEN_PRODUCTS_FOLDER
-    io_stub = types.SimpleNamespace(GEN_PRODUCTS_FOLDER=tmp_path)
-    monkeypatch.setattr(up, "IO_PATHS", io_stub, raising=False)
-
-    def fake_gen_json_objects(_):
-        yield Path("a.json"), {"HS Code": "1234"}
-        yield Path("b.json"), {"HS Code": "5678"}
-        yield Path("c.json"), {"nope": True}
-        yield Path("d.json"), ["not-a-dict"]
-
-    monkeypatch.setattr(up, "gen_json_objects", fake_gen_json_objects, raising=True)
-    assert up.get_unique_hs_codes() == {"1234", "5678"}
+def test_fetch_trade_data_no_data(monkeypatch, capsys):
+    with patch("materia.market.market.get_comtrade_api_key", return_value="KEY"), patch(
+        "materia.market.market.get_location_data", return_value={"comtradeID": 442}
+    ), patch("materia.market.market.C.TRADE_YEARS", ["2020"]), patch(
+        "materia.market.market.C.TRADE_FLOW", "M"
+    ), patch(
+        "materia.market.market.comtradeapicall.getFinalData",
+        return_value=pd.DataFrame(),
+    ), patch(
+        "materia.market.market.time.sleep"
+    ):
+        out = tm.fetch_trade_data_for_hs_code("LU", "0101")
+        assert out is None
+        assert "No data for HS 0101" in capsys.readouterr().out
 
 
-def test_fetch_trade_data(monkeypatch):
-    monkeypatch.setattr(up.C, "TRADE_YEARS", ["2021"], raising=True)
-    monkeypatch.setattr(up.C, "TRADE_TARGET", "250", raising=True)
-    monkeypatch.setattr(up.C, "TRADE_FLOW", "M", raising=True)
-    monkeypatch.setattr(
-        up, "time", types.SimpleNamespace(sleep=lambda *_: None), raising=True
+def test_fetch_trade_data_exception(capsys):
+    with patch("materia.market.market.get_comtrade_api_key", return_value="KEY"), patch(
+        "materia.market.market.get_location_data", return_value={"comtradeID": 442}
+    ), patch("materia.market.market.C.TRADE_YEARS", ["2020"]), patch(
+        "materia.market.market.C.TRADE_FLOW", "M"
+    ), patch(
+        "materia.market.market.comtradeapicall.getFinalData",
+        side_effect=RuntimeError("boom"),
+    ), patch(
+        "materia.market.market.time.sleep"
+    ):
+        out = tm.fetch_trade_data_for_hs_code("LU", "0101")
+        assert out is None
+        msg = capsys.readouterr().out
+        assert "Error fetching data for HS 0101: boom" in msg
+
+
+def test_estimate_market_shares_happy_path(monkeypatch):
+    monkeypatch.setattr(tm, "TRADE_ROW_REGIONS", {"W01", "W02"})
+    df = pd.DataFrame(
+        {
+            "partneriso": ["DE", "FR", "W01", "DE", "Small"],
+            "qty": [60, 30, 10, 40, 1],
+        }
     )
+    shares = tm.estimate_market_shares(df.copy())
+    assert set(shares.keys()) == {"DE", "FR", "RoW"}
+    assert pytest.approx(sum(shares.values()), 1e-12) == 1.0
+    assert shares["DE"] > shares["FR"] > shares["RoW"]
 
-    FakeAPI.payload = pd.DataFrame([{"x": 1}])
-    df = up.fetch_trade_data_for_hs_code("1234", "FAKE_API_KEY")
-    assert isinstance(df, pd.DataFrame)
+
+def test_estimate_market_shares_missing_columns(capsys):
+    df = pd.DataFrame({"partner": ["DE"], "qty": [1]})
+    assert tm.estimate_market_shares(df) == {}
+    assert "Missing required columns" in capsys.readouterr().out
 
 
-def test_fetch_trade_data_empty(monkeypatch, capsys):
-    monkeypatch.setattr(up.C, "TRADE_YEARS", ["2021"], raising=True)
-    monkeypatch.setattr(up.C, "TRADE_TARGET", "250", raising=True)
-    monkeypatch.setattr(up.C, "TRADE_FLOW", "M", raising=True)
-    monkeypatch.setattr(
-        up, "time", types.SimpleNamespace(sleep=lambda *_: None), raising=True
+def test_estimate_market_shares_zero_total(monkeypatch):
+    monkeypatch.setattr(tm, "TRADE_ROW_REGIONS", {"W01"})
+    df = pd.DataFrame({"partneriso": ["W01"], "qty": [0]})
+    assert tm.estimate_market_shares(df) == {}
+
+
+def test_estimate_market_shares_filters_W00(monkeypatch):
+    monkeypatch.setattr(tm, "TRADE_ROW_REGIONS", set())
+    df = pd.DataFrame({"partneriso": ["W00", "DE"], "qty": [999, 1]})
+    shares = tm.estimate_market_shares(df)
+    import pytest
+
+    assert pytest.approx(sum(shares.values()), 1e-12) == 1.0
+    assert pytest.approx(shares.get("DE", 0.0)) == 1.0
+    assert pytest.approx(shares.get("RoW", 0.0)) == 0.0
+
+
+def test_generate_market_returns_estimates(monkeypatch):
+    fake_df = pd.DataFrame({"partneriso": ["DE"], "qty": [100]})
+    monkeypatch.setattr(tm, "fetch_trade_data_for_hs_code", lambda *_: fake_df)
+    monkeypatch.setattr(tm, "estimate_market_shares", lambda df: {"DE": 1.0})
+    assert tm.generate_market("LU", "0101") == {"DE": 1.0}
+
+
+def test_generate_market_no_df(capsys, monkeypatch):
+    monkeypatch.setattr(tm, "fetch_trade_data_for_hs_code", lambda *_: None)
+    assert tm.generate_market("LU", "0101") is None
+    assert (
+        "No market shares can be generated for 0101 imports to LU."
+        in capsys.readouterr().out
     )
-
-    FakeAPI.payload = pd.DataFrame()
-    df = up.fetch_trade_data_for_hs_code("9999", "FAKE_API_KEY")
-    assert df is None
-    assert "No data for HS 9999" in capsys.readouterr().out
-
-
-def test_fetch_trade_data_exception(monkeypatch, capsys):
-    monkeypatch.setattr(up.C, "TRADE_YEARS", ["2021"], raising=True)
-    monkeypatch.setattr(up.C, "TRADE_TARGET", "250", raising=True)
-    monkeypatch.setattr(up.C, "TRADE_FLOW", "M", raising=True)
-    monkeypatch.setattr(
-        up, "time", types.SimpleNamespace(sleep=lambda *_: None), raising=True
-    )
-
-    FakeAPI.exc = RuntimeError("boom")
-    df = up.fetch_trade_data_for_hs_code("1111", "FAKE_API_KEY")
-    assert df is None
-    assert "Error fetching data for HS 1111: boom" in capsys.readouterr().out
-    FakeAPI.exc = None
-
-
-def test_estimate_market_shares():
-    df = pd.DataFrame({"partneriso": ["A", "B", "E19"], "qty": [100, 50, 30]})
-    shares = up.estimate_market_shares(df)
-    assert isinstance(shares, dict)
-    assert "RoW" in shares or "A" in shares
-
-
-def test_update_shares(monkeypatch):
-    monkeypatch.setattr(up, "get_unique_hs_codes", lambda: {"1234"}, raising=True)
-    monkeypatch.setattr(
-        up,
-        "fetch_trade_data_for_hs_code",
-        lambda hs, key: pd.DataFrame({"partneriso": ["A", "E19"], "qty": [100, 50]}),
-        raising=True,
-    )
-    monkeypatch.setattr(
-        up, "estimate_market_shares", lambda df: {"A": 0.67, "RoW": 0.33}, raising=True
-    )
-    monkeypatch.setattr(up, "tqdm", lambda x, **kwargs: x, raising=True)
-
-    calls = []
-
-    def fake_update_user_data(subfolder, filename, data):
-        calls.append((subfolder, filename, data))
-
-    monkeypatch.setattr(up, "update_user_data", fake_update_user_data, raising=True)
-    up.update_shares("FAKE_API_KEY")
-
-    assert calls == [("market_shares", "1234.json", {"A": 0.67, "RoW": 0.33})]

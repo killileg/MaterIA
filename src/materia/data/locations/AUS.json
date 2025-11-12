@@ -3,5 +3,6 @@
   "Name": "Australia",
   "Class": "Country",
   "Parent": "Australia and New Zealand",
-  "Children": null
+  "Children": null,
+  "comtradeID": 36
 }

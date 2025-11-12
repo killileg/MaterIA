@@ -3,5 +3,6 @@
   "Name": "Argentina",
   "Class": "Country",
   "Parent": "South America",
-  "Children": null
+  "Children": null,
+  "comtradeID": 32
 }

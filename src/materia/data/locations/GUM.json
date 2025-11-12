@@ -3,5 +3,6 @@
   "Name": "Guam",
   "Class": "Country",
   "Parent": "Micronesia",
-  "Children": null
+  "Children": null,
+  "comtradeID": 316
 }

@@ -3,5 +3,6 @@
   "Name": "Lebanon",
   "Class": "Country",
   "Parent": "Western Asia",
-  "Children": null
+  "Children": null,
+  "comtradeID": 422
 }

@@ -3,5 +3,6 @@
   "Name": "Haiti",
   "Class": "Country",
   "Parent": "Caribbean",
-  "Children": null
+  "Children": null,
+  "comtradeID": 332
 }

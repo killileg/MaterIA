@@ -3,5 +3,6 @@
   "Name": "Kazakhstan",
   "Class": "Country",
   "Parent": "Central Asia",
-  "Children": null
+  "Children": null,
+  "comtradeID": 398
 }

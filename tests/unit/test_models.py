@@ -63,7 +63,7 @@ def test_models_full_coverage(tmp_path):
     models.Material = Material
     models.normalize_module_values = lambda elems, scaling_factor=1.0: [10, 20, 30]
     models.get_indicator_synonyms = lambda: {"GWP": ["Global Warming Potential"]}
-    models.get_market_shares = lambda _hs: {"EU": 0.7}
+    models.get_market_shares = lambda _loc, _hs: {"EU": 0.7}
     models.read_json_file = lambda _p: {"match": True}
     models.MATCHES_FOLDER = str(tmp_path)
 

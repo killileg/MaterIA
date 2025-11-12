@@ -3,5 +3,6 @@
   "Name": "Equatorial Guinea",
   "Class": "Country",
   "Parent": "Middle Africa",
-  "Children": null
+  "Children": null,
+  "comtradeID": 226
 }

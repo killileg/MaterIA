@@ -3,5 +3,6 @@
   "Name": "Myanmar",
   "Class": "Country",
   "Parent": "South-eastern Asia",
-  "Children": null
+  "Children": null,
+  "comtradeID": 104
 }

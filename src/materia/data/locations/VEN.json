@@ -3,5 +3,6 @@
   "Name": "Venezuela (Bolivarian Republic of)",
   "Class": "Country",
   "Parent": "South America",
-  "Children": null
+  "Children": null,
+  "comtradeID": 862
 }

@@ -3,5 +3,6 @@
   "Name": "Djibouti",
   "Class": "Country",
   "Parent": "Eastern Africa",
-  "Children": null
+  "Children": null,
+  "comtradeID": 262
 }

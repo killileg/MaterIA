@@ -3,5 +3,6 @@
   "Name": "Samoa",
   "Class": "Country",
   "Parent": "Polynesia",
-  "Children": null
+  "Children": null,
+  "comtradeID": 882
 }

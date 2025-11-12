@@ -3,5 +3,6 @@
   "Name": "Saint Vincent and the Grenadines",
   "Class": "Country",
   "Parent": "Caribbean",
-  "Children": null
+  "Children": null,
+  "comtradeID": 670
 }

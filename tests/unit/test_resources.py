@@ -1,104 +1,190 @@
-from contextlib import contextmanager
-from pathlib import Path
+from unittest.mock import patch, MagicMock
+import sys
+import types
 
 import materia.resources as res
 
 
-def test_resources_full_coverage(tmp_path):
-    # ---- reset caches (important for deterministic tests) ----
+def test_load_json_from_package_success_and_cache():
     res.load_json_from_package.cache_clear()
-    res.get_regions_mapping.cache_clear()
-    res.get_indicator_synonyms.cache_clear()
+
+    mock_path = MagicMock()
+    with patch("materia.resources.files") as mock_files, patch(
+        "materia.resources.as_file"
+    ) as mock_as_file, patch("materia.resources.io_files.read_json_file") as mock_read:
+        mock_files.return_value.joinpath.return_value = mock_path
+        mock_as_file.return_value.__enter__.return_value = mock_path
+        mock_read.return_value = {"ok": 1}
+
+        assert res.load_json_from_package("foo.json") == {"ok": 1}
+        assert res.load_json_from_package("foo.json") == {"ok": 1}
+        assert mock_read.call_count == 1
+
+
+def test_load_json_from_package_error_when_none():
+    res.load_json_from_package.cache_clear()
+
+    mock_path = MagicMock()
+    with patch("materia.resources.files") as mock_files, patch(
+        "materia.resources.as_file"
+    ) as mock_as_file, patch(
+        "materia.resources.io_files.read_json_file", return_value=None
+    ):
+        mock_files.return_value.joinpath.return_value = mock_path
+        mock_as_file.return_value.__enter__.return_value = mock_path
+
+        import pytest
+
+        with pytest.raises(ValueError, match=r"Invalid or missing JSON file: foo.json"):
+            res.load_json_from_package("foo.json")
+
+
+@patch(
+    "materia.resources.io_files.gen_json_objects",
+    return_value=[("a.json", {"a": 1}), ("b.json", {"b": 2})],
+)
+@patch("materia.resources.as_file")
+@patch("materia.resources.files")
+def test_iter_json_from_package_folder(mock_files, mock_as_file, mock_gen):
+    fake_folder = MagicMock()
+    mock_files.return_value.joinpath.return_value = fake_folder
+    mock_as_file.return_value.__enter__.return_value = fake_folder
+
+    items = list(res.iter_json_from_package_folder("folder"))
+    assert items == [("a.json", {"a": 1}), ("b.json", {"b": 2})]
+
+    mock_files.return_value.joinpath.assert_called_once_with("data", "folder")
+    mock_gen.assert_called_once_with(fake_folder)
+
+
+@patch("materia.resources.load_json_from_package")
+def test_get_regions_mapping(mock_load):
+    mock_load.return_value = {"EU": "Europe"}
+    result = res.get_regions_mapping()
+    assert result == {"EU": "Europe"}
+    mock_load.assert_called_once_with("regions_mapping.json")
+
+
+@patch("materia.resources.load_json_from_package")
+def test_get_indicator_synonyms(mock_load):
+    mock_load.return_value = {"GHG": "Greenhouse gases"}
+    result = res.get_indicator_synonyms()
+    assert result == {"GHG": "Greenhouse gases"}
+    mock_load.assert_called_once_with("indicator_synonyms.json")
+
+
+def test_get_market_shares_pkg_resource(tmp_path):
     res.get_market_shares.cache_clear()
-    res.get_location_data.cache_clear()
 
-    # ---- patch paths & importlib.resources facades ----
-    pkg_root = tmp_path / "pkg"  # pretend package root; no real files needed
-    pkg_root.mkdir()
-    res.USER_DATA_DIR = tmp_path / "user"
-    res.USER_DATA_DIR.mkdir()
+    pkg_res = MagicMock()
+    pkg_res.is_file.return_value = True
+    with patch("materia.resources.files") as mfiles, patch(
+        "materia.resources.as_file"
+    ) as mas_file, patch(
+        "materia.resources.io_files.read_json_file", return_value={"pkg": True}
+    ) as mread, patch(
+        "materia.resources.io_files.write_json_file"
+    ) as mwrite:
+        mfiles.return_value.joinpath.return_value = pkg_res
+        mas_file.return_value.__enter__.return_value = tmp_path / "pkg.json"
 
-    def files(_pkg):  # returns a base Path that supports .joinpath(...)
-        return pkg_root
+        assert res.get_market_shares("LU", "0101") == {"pkg": True}
+        mwrite.assert_not_called()
+        mread.assert_called_once()
 
-    @contextmanager
-    def as_file(pathlike):
-        # mimic importlib.resources.as_file context manager
-        yield Path(pathlike)
 
-    res.files = files
-    res.as_file = as_file
+def test_get_market_shares_user_file(tmp_path):
+    res.get_market_shares.cache_clear()
 
-    # ---- stub materia.io.files API used by the module ----
-    calls = []
-
-    def read_json_file(path):
-        p = Path(path)
-        # return concrete data for known names; None for others to trigger errors
-        if p.name == "regions_mapping.json":
-            return {"regions": True}
-        if p.name == "indicator_synonyms.json":
-            return {"synonyms": True}
-        if p.parent.name == "locations" and p.name == "FR.json":
-            return {"FR": {"ok": 1}}
-        if p.name == "7208.json":
-            return {"share": 1}
-        if p.name == "fallback.json":
-            return {"fb": 1}
-        return None  # triggers ValueError branches
-
-    def gen_json_objects(folder_path):
-        # yield at least one (filename, data) pair
-        yield ("a.json", {"A": 1})
-
-    def write_json_file(path, data):
-        calls.append((Path(path), data))
-
-    res.io_files.read_json_file = read_json_file
-    res.io_files.gen_json_objects = gen_json_objects
-    res.io_files.write_json_file = write_json_file
-
-    # ---- get_data_file: user path branch ----
-    user_file = res.USER_DATA_DIR / "market_shares" / "exists.json"
+    pkg_res = MagicMock()
+    pkg_res.is_file.return_value = False
+    user_root = tmp_path
+    user_file = user_root / "market_shares" / "LU" / "0101.json"
     user_file.parent.mkdir(parents=True, exist_ok=True)
     user_file.write_text("{}", encoding="utf-8")
-    assert res.get_data_file("exists.json", "market_shares") == user_file
 
-    # ---- get_data_file: fallback to package branch ----
-    # (no file created; as_file just returns the joined path)
-    fb = res.get_data_file("fallback.json")
-    assert fb == pkg_root / "data" / "fallback.json"
+    with patch("materia.resources.USER_DATA_DIR", user_root), patch(
+        "materia.resources.files"
+    ) as mfiles, patch("materia.resources.as_file"), patch(
+        "materia.resources.io_files.read_json_file", return_value={"user": True}
+    ) as mread, patch(
+        "materia.resources.io_files.write_json_file"
+    ) as mwrite:
+        mfiles.return_value.joinpath.return_value = pkg_res
 
-    # ---- load_json_from_package: success ----
-    assert res.load_json_from_package("regions_mapping.json") == {"regions": True}
+        assert res.get_market_shares("LU", "0101") == {"user": True}
+        mwrite.assert_not_called()
+        mread.assert_called_once()
 
-    # ---- load_json_from_package: failure -> ValueError ----
-    import pytest
 
-    with pytest.raises(ValueError):
-        res.load_json_from_package("missing.json")
-
-    # ---- iter_json_from_package_folder ----
-    items = list(res.iter_json_from_package_folder("any_folder"))
-    assert items == [("a.json", {"A": 1})]
-
-    # ---- get_regions_mapping / get_indicator_synonyms (cached wrappers) ----
-    assert res.get_regions_mapping() == {"regions": True}
-    assert res.get_indicator_synonyms() == {"synonyms": True}
-
-    # ---- get_market_shares: success via user or package path ----
-    assert res.get_market_shares("7208") == {"share": 1}
-
-    # ---- get_market_shares: failure when data is None ----
+def test_get_market_shares_generate_and_store(tmp_path, capsys):
     res.get_market_shares.cache_clear()
-    with pytest.raises(ValueError):
-        res.get_market_shares("0000")
 
-    # ---- get_location_data (locations/FR.json) ----
-    assert res.get_location_data("FR") == {"FR": {"ok": 1}}
+    pkg_res = MagicMock()
+    pkg_res.is_file.return_value = False
+    user_root = tmp_path
 
-    # ---- update_user_data writes to USER_DATA_DIR/subfolder/filename ----
-    res.update_user_data("custom", "x.json", {"k": 2})
-    target = res.USER_DATA_DIR / "custom" / "x.json"
-    assert calls and calls[-1][0] == target and calls[-1][1] == {"k": 2}
-    assert target.parent.exists()
+    market_mod = types.ModuleType("materia.market.market")
+    market_mod.generate_market = MagicMock(return_value={"gen": True})
+    sys.modules.setdefault("materia", types.ModuleType("materia"))
+    sys.modules.setdefault("materia.market", types.ModuleType("materia.market"))
+    sys.modules["materia.market.market"] = market_mod
+
+    with patch("materia.resources.USER_DATA_DIR", user_root), patch(
+        "materia.resources.files"
+    ) as mfiles, patch("materia.resources.as_file"), patch(
+        "materia.resources.io_files.write_json_file"
+    ) as mwrite:
+        mfiles.return_value.joinpath.return_value = pkg_res
+
+        out = res.get_market_shares("FR", "0303")
+        assert out == {"gen": True}
+        market_mod.generate_market.assert_called_once_with("FR", "0303")
+
+        expected = user_root / "market_shares" / "FR" / "0303.json"
+        assert mwrite.call_args[0][0] == expected
+        assert mwrite.call_args[0][1] == {"gen": True}
+
+        msg = capsys.readouterr().out
+        assert f"Market share for imports of 0303 to FR stored in {expected}." in msg
+
+
+def test_get_comtrade_api_key_from_file(tmp_path):
+    api_path = tmp_path / "comtrade_api_key.json"
+    with patch("materia.resources.USER_DATA_DIR", tmp_path), patch(
+        "materia.resources.io_files.read_json_file", return_value={"apikey": "XYZ"}
+    ) as mread:
+        api_path.write_text("{}", encoding="utf-8")
+        assert res.get_comtrade_api_key() == "XYZ"
+        mread.assert_called_once_with(api_path)
+
+
+def test_get_comtrade_api_key_prompt_and_store(tmp_path, capsys):
+    api_path = tmp_path / "comtrade_api_key.json"
+    with patch("materia.resources.USER_DATA_DIR", tmp_path), patch(
+        "builtins.input", return_value="abc123"
+    ), patch("materia.resources.io_files.read_json_file", return_value={}), patch(
+        "materia.resources.io_files.write_json_file"
+    ) as mwrite:
+        key = res.get_comtrade_api_key()
+        assert key == "abc123"
+        mwrite.assert_called_once_with(api_path, {"apikey": "abc123"})
+        assert f"API key stored in {api_path}." in capsys.readouterr().out
+
+
+def test_get_comtrade_api_key_empty_raises(tmp_path):
+    with patch("materia.resources.USER_DATA_DIR", tmp_path), patch(
+        "builtins.input", return_value="  "
+    ), patch("materia.resources.io_files.read_json_file", return_value={}):
+        import pytest
+
+        with pytest.raises(ValueError, match="API key cannot be empty."):
+            res.get_comtrade_api_key()
+
+
+@patch("materia.resources.load_json_from_package")
+def test_get_location_data(mock_load):
+    mock_load.return_value = {"name": "Luxembourg"}
+    result = res.get_location_data("LU")
+    assert result == {"name": "Luxembourg"}
+    mock_load.assert_called_once_with("locations", "LU.json")

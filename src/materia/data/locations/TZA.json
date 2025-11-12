@@ -3,5 +3,6 @@
   "Name": "United Republic of Tanzania",
   "Class": "Country",
   "Parent": "Eastern Africa",
-  "Children": null
+  "Children": null,
+  "comtradeID": 834
 }
