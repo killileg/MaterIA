@@ -1,5 +1,5 @@
 # tests/unit/test_constants.py
-from materia.core import constants as c
+from materia_epd.core import constants as c
 
 
 # ----------------------------- Namespaces -----------------------------------

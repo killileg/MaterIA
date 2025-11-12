@@ -4,7 +4,7 @@ import types
 import xml.etree.ElementTree as ET
 import pytest
 
-from materia.epd import pipeline as pl
+from materia_epd.epd import pipeline as pl
 
 
 # ------------------------------ gen_xml_objects ------------------------------
@@ -208,7 +208,7 @@ def test_run_materia_executes_pipeline_and_writes(monkeypatch, tmp_path: Path):
     out_dir.mkdir()
 
     def fake_gen_xml_objects(folder):
-        assert Path(folder) == prod_dir
+        assert Path(folder) == prod_dir / "processes"
         yield (prod_dir / "prod.xml", ET.Element("root"))
 
     monkeypatch.setattr(pl, "gen_xml_objects", fake_gen_xml_objects, raising=True)
@@ -247,7 +247,7 @@ def test_run_materia_executes_pipeline_and_writes(monkeypatch, tmp_path: Path):
     epd_return_avg_gwps = {"GWP": 3.5}
 
     def fake_epd_pipeline(process, path_to_epd_folder):
-        assert path_to_epd_folder == epd_dir
+        assert path_to_epd_folder == epd_dir / "processes"
         return epd_return_avg_props, epd_return_avg_gwps
 
     monkeypatch.setattr(pl, "epd_pipeline", fake_epd_pipeline, raising=True)
