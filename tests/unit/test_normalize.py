@@ -2,7 +2,7 @@
 import xml.etree.ElementTree as ET
 import pytest
 
-from materia.metrics import normalize as norm
+from materia_epd.metrics import normalize as norm
 
 
 @pytest.fixture(autouse=True)

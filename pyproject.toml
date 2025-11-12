@@ -46,13 +46,14 @@ local_scheme = "dirty-tag"
 package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
+include = ["materia_epd*"]
 where = ["src"]
 
 [tool.setuptools.package-data]
 materia = ["data/*.json"]
 
 [tool.pytest.ini_options]
-addopts = "--cov=materia --cov-report=term-missing --cov-fail-under=95"
+addopts = "--cov=materia_epd --cov-report=term-missing --cov-fail-under=95"
 testpaths = ["tests"]
 
 [tool.deptry]
@@ -60,4 +61,4 @@ pep621_dev_dependency_groups = ["dev"]
 extend_exclude = ["docs"]
 
 [tool.deptry.per_rule_ignores]
-DEP003 = ["materia"]
+DEP003 = ["materia_epd"]

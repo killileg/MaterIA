@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import pytest
-from materia.io import files as mod
+from materia_epd.io import files as mod
 
 
 # ---------- helpers ----------

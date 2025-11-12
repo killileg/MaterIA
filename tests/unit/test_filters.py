@@ -1,6 +1,6 @@
 # tests/unit/test_filters.py
 
-from materia.epd.filters import (
+from materia_epd.epd.filters import (
     EPDFilter,
     UUIDFilter,
     UnitConformityFilter,

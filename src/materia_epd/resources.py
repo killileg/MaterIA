@@ -4,8 +4,8 @@ from __future__ import annotations
 from functools import lru_cache
 from importlib.resources import as_file, files
 
-from materia.io import files as io_files
-from materia.io.paths import USER_DATA_DIR
+from materia_epd.io import files as io_files
+from materia_epd.io.paths import USER_DATA_DIR
 
 
 @lru_cache(maxsize=None)
@@ -54,7 +54,7 @@ def get_market_shares(loc_code: str, hs_code: str):
         if data is not None:
             return data
 
-    from materia.market.market import generate_market
+    from materia_epd.market.market import generate_market
 
     data = generate_market(loc_code, hs_code)
     user_file.parent.mkdir(parents=True, exist_ok=True)

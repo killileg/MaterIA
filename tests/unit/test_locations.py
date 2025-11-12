@@ -1,6 +1,6 @@
 # tests/unit/test_locations.py
 import types
-import materia.geo.locations as loc
+import materia_epd.geo.locations as loc
 
 
 def test_locations_full_coverage(monkeypatch):

@@ -1,4 +1,4 @@
-from materia.core.utils import to_float
+from materia_epd.core.utils import to_float
 
 
 def average_impacts(impacts_list, decimals=6):

@@ -2,7 +2,7 @@
 import math
 import numpy as np
 import pytest
-from materia.core import physics as ph
+from materia_epd.core import physics as ph
 
 
 # ---------------------- helpers ----------------------

@@ -38,15 +38,6 @@ repos:
 
   - repo: local
     hooks:
-      - id: check-manifest
-        name: Check Manifest
-        entry: check-manifest
-        language: system
-        pass_filenames: false
-        always_run: true
-
-  - repo: local
-    hooks:
       - id: build-package
         name: Build Package
         entry: python -m build
