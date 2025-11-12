@@ -105,7 +105,7 @@ def epd_pipeline(process: IlcdProcess, path_to_epd_folder: Path):
 
 
 def run_materia(path_to_gen_folder: Path, path_to_epd_folder: Path, output_path: Path):
-    for path, root in gen_xml_objects(path_to_gen_folder):
+    for path, root in gen_xml_objects(path_to_gen_folder / "processes"):
         process = IlcdProcess(root=root, path=path)
         process.get_ref_flow()
         process.get_hs_class()
@@ -113,7 +113,9 @@ def run_materia(path_to_gen_folder: Path, path_to_epd_folder: Path, output_path:
         process.get_matches()
         if process.matches:
             print(f"{process.uuid}: processing")
-            avg_properties, avg_gwps = epd_pipeline(process, path_to_epd_folder)
+            avg_properties, avg_gwps = epd_pipeline(
+                process, path_to_epd_folder / "processes"
+            )
             if avg_properties is None and avg_gwps is None:
                 print(f"{process.uuid}: cannot be completed\n")
             else:
