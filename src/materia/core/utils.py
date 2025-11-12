@@ -27,4 +27,4 @@ def sort_key(p: Path):
         v is not None,
         v or tuple(),
         p.stat().st_mtime,
-    )  # versioned first, then highest, then newest
+    )
