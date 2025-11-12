@@ -3,5 +3,6 @@
   "Name": "Bosnia and Herzegovina",
   "Class": "Country",
   "Parent": "Southern Europe",
-  "Children": null
+  "Children": null,
+  "comtradeID": 70
 }

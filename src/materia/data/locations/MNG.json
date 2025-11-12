@@ -3,5 +3,6 @@
   "Name": "Mongolia",
   "Class": "Country",
   "Parent": "Eastern Asia",
-  "Children": null
+  "Children": null,
+  "comtradeID": 496
 }

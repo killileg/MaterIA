@@ -3,5 +3,6 @@
   "Name": "American Samoa",
   "Class": "Country",
   "Parent": "Polynesia",
-  "Children": null
+  "Children": null,
+  "comtradeID": 16
 }

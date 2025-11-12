@@ -3,5 +3,6 @@
   "Name": "Eswatini",
   "Class": "Country",
   "Parent": "Southern Africa",
-  "Children": null
+  "Children": null,
+  "comtradeID": 748
 }

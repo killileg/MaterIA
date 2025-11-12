@@ -3,5 +3,6 @@
   "Name": "Rwanda",
   "Class": "Country",
   "Parent": "Eastern Africa",
-  "Children": null
+  "Children": null,
+  "comtradeID": 646
 }

@@ -3,5 +3,6 @@
   "Name": "China, Macao Special Administrative Region",
   "Class": "Country",
   "Parent": "Eastern Asia",
-  "Children": null
+  "Children": null,
+  "comtradeID": 446
 }

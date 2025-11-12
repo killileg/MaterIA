@@ -83,8 +83,6 @@ def epd_pipeline(process: IlcdProcess, path_to_epd_folder: Path):
 
     for epd in filtered_epds:
         epd.get_lcia_results()
-        # print(epd.uuid)
-        # pprint(epd.lcia_results)
 
     avg_properties = average_material_properties(filtered_epds)
     mat = Material(**avg_properties)

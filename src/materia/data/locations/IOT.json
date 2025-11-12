@@ -3,5 +3,6 @@
   "Name": "British Indian Ocean Territory",
   "Class": "Country",
   "Parent": "Eastern Africa",
-  "Children": null
+  "Children": null,
+  "comtradeID": 86
 }

@@ -3,5 +3,6 @@
   "Name": "Niue",
   "Class": "Country",
   "Parent": "Polynesia",
-  "Children": null
+  "Children": null,
+  "comtradeID": 570
 }

@@ -3,5 +3,6 @@
   "Name": "Chad",
   "Class": "Country",
   "Parent": "Middle Africa",
-  "Children": null
+  "Children": null,
+  "comtradeID": 148
 }

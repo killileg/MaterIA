@@ -3,5 +3,6 @@
   "Name": "India",
   "Class": "Country",
   "Parent": "Southern Asia",
-  "Children": null
+  "Children": null,
+  "comtradeID": 699
 }

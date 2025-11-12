@@ -3,5 +3,6 @@
   "Name": "Liechtenstein",
   "Class": "Country",
   "Parent": "Western Europe",
-  "Children": null
+  "Children": null,
+  "comtradeID": 438
 }

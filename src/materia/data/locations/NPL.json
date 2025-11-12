@@ -3,5 +3,6 @@
   "Name": "Nepal",
   "Class": "Country",
   "Parent": "Southern Asia",
-  "Children": null
+  "Children": null,
+  "comtradeID": 524
 }

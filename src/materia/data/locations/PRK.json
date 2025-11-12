@@ -3,5 +3,6 @@
   "Name": "Democratic People's Republic of Korea",
   "Class": "Country",
   "Parent": "Eastern Asia",
-  "Children": null
+  "Children": null,
+  "comtradeID": 408
 }

@@ -3,5 +3,6 @@
   "Name": "Puerto Rico",
   "Class": "Country",
   "Parent": "Caribbean",
-  "Children": null
+  "Children": null,
+  "comtradeID": 630
 }

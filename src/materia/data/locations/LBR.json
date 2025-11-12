@@ -3,5 +3,6 @@
   "Name": "Liberia",
   "Class": "Country",
   "Parent": "Western Africa",
-  "Children": null
+  "Children": null,
+  "comtradeID": 430
 }

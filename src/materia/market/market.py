@@ -1,41 +1,33 @@
 import time
 import pandas as pd
-from tqdm import tqdm
 import comtradeapicall
 
-from materia.io.files import gen_json_objects
-from materia.io import paths as IO_PATHS
 from materia.core import constants as C
-from materia.resources import update_user_data
+from materia.resources import get_location_data, get_comtrade_api_key
 from materia.core.constants import TRADE_ROW_REGIONS
 
 
-def get_unique_hs_codes():
-    """Extracts a set of unique HS codes from the generated product JSON files."""
-    hs_codes = {
-        product["HS Code"]
-        for _, product in gen_json_objects(IO_PATHS.GEN_PRODUCTS_FOLDER)
-        if isinstance(product, dict) and "HS Code" in product
-    }
-    return hs_codes
-
-
-def fetch_trade_data_for_hs_code(
-    hs_code: str, comtradeapikey: str
-) -> pd.DataFrame | None:
+def fetch_trade_data_for_hs_code(loc_code: str, hs_code: str) -> pd.DataFrame | None:
+    comtradeapikey = get_comtrade_api_key()
+    location = get_location_data(loc_code)
+    comtradeID = location["comtradeID"]
     try:
         params = dict(
             typeCode="C",
             freqCode="A",
             clCode="HS",
             period=",".join(C.TRADE_YEARS),
-            reporterCode=C.TRADE_TARGET,
+            reporterCode=comtradeID,
             cmdCode=hs_code,
             flowCode=C.TRADE_FLOW,
             format_output="JSON",
             includeDesc=True,
             maxRecords=2500,
             breakdownMode="classic",
+            partnerCode=None,
+            partner2Code=None,
+            customsCode=None,
+            motCode=None,
         )
         df = comtradeapicall.getFinalData(comtradeapikey, **params)
         if isinstance(df, pd.DataFrame) and not df.empty:
@@ -82,11 +74,10 @@ def estimate_market_shares(df):
     return dict(zip(m.sort_values("share", ascending=False)["partneriso"], m["share"]))
 
 
-def update_shares(comtradeapikey: str) -> None:
-    hs_codes = get_unique_hs_codes()
-
-    for hs_code in tqdm(hs_codes, desc="Updating market shares"):
-        df = fetch_trade_data_for_hs_code(hs_code, comtradeapikey)
-        if df is not None:
-            market_shares = estimate_market_shares(df)
-            update_user_data("market_shares", f"{hs_code}.json", market_shares)
+def generate_market(loc_code, hs_code) -> None:
+    df = fetch_trade_data_for_hs_code(loc_code, hs_code)
+    if df is not None:
+        return estimate_market_shares(df)
+    else:
+        print(f"No market shares can be generated for {hs_code} imports to {loc_code}.")
+        return None

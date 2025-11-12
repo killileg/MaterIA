@@ -3,5 +3,6 @@
   "Name": "Cook Islands",
   "Class": "Country",
   "Parent": "Polynesia",
-  "Children": null
+  "Children": null,
+  "comtradeID": 184
 }

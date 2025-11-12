@@ -3,5 +3,6 @@
   "Name": "Isle of Man",
   "Class": "Country",
   "Parent": "Northern Europe",
-  "Children": null
+  "Children": null,
+  "comtradeID": 833
 }

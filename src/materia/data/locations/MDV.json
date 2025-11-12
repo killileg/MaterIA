@@ -3,5 +3,6 @@
   "Name": "Maldives",
   "Class": "Country",
   "Parent": "Southern Asia",
-  "Children": null
+  "Children": null,
+  "comtradeID": 462
 }

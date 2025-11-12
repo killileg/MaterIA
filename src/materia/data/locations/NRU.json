@@ -3,5 +3,6 @@
   "Name": "Nauru",
   "Class": "Country",
   "Parent": "Micronesia",
-  "Children": null
+  "Children": null,
+  "comtradeID": 520
 }

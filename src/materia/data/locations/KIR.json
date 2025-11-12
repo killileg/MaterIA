@@ -3,5 +3,6 @@
   "Name": "Kiribati",
   "Class": "Country",
   "Parent": "Micronesia",
-  "Children": null
+  "Children": null,
+  "comtradeID": 296
 }

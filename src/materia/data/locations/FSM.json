@@ -3,5 +3,6 @@
   "Name": "Micronesia (Federated States of)",
   "Class": "Country",
   "Parent": "Micronesia",
-  "Children": null
+  "Children": null,
+  "comtradeID": 583
 }

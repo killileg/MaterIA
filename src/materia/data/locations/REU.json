@@ -3,5 +3,6 @@
   "Name": "Réunion",
   "Class": "Country",
   "Parent": "Eastern Africa",
-  "Children": null
+  "Children": null,
+  "comtradeID": 638
 }

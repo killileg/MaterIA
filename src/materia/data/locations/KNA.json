@@ -3,5 +3,6 @@
   "Name": "Saint Kitts and Nevis",
   "Class": "Country",
   "Parent": "Caribbean",
-  "Children": null
+  "Children": null,
+  "comtradeID": 659
 }

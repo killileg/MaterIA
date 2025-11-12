@@ -186,7 +186,7 @@ class IlcdProcess:
         self.hs_class = top_class.attrib.get(ATTR.CLASS_ID)
 
     def get_market(self) -> dict:
-        self.market = get_market_shares(self.hs_class)
+        self.market = get_market_shares(self.loc, self.hs_class)
         return self.market
 
     def get_matches(self) -> dict:

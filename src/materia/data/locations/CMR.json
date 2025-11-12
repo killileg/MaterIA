@@ -3,5 +3,6 @@
   "Name": "Cameroon",
   "Class": "Country",
   "Parent": "Middle Africa",
-  "Children": null
+  "Children": null,
+  "comtradeID": 120
 }

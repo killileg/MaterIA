@@ -3,5 +3,6 @@
   "Name": "Saint Pierre and Miquelon",
   "Class": "Country",
   "Parent": "Northern America",
-  "Children": null
+  "Children": null,
+  "comtradeID": 666
 }

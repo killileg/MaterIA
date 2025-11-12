@@ -3,5 +3,6 @@
   "Name": "Democratic Republic of the Congo",
   "Class": "Country",
   "Parent": "Middle Africa",
-  "Children": null
+  "Children": null,
+  "comtradeID": 180
 }

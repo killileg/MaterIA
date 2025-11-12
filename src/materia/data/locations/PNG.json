@@ -3,5 +3,6 @@
   "Name": "Papua New Guinea",
   "Class": "Country",
   "Parent": "Melanesia",
-  "Children": null
+  "Children": null,
+  "comtradeID": 598
 }

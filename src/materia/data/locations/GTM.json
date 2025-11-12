@@ -3,5 +3,6 @@
   "Name": "Guatemala",
   "Class": "Country",
   "Parent": "Central America",
-  "Children": null
+  "Children": null,
+  "comtradeID": 320
 }

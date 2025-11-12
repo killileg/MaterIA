@@ -13,7 +13,6 @@ dependencies = [
     "click",
     "numpy",
     "pandas",
-    "tqdm",
     "pycountry",
     "comtradeapicall"
 ]

@@ -3,5 +3,6 @@
   "Name": "China",
   "Class": "Country",
   "Parent": "Eastern Asia",
-  "Children": null
+  "Children": null,
+  "comtradeID": 156
 }

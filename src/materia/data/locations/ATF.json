@@ -3,5 +3,6 @@
   "Name": "French Southern Territories",
   "Class": "Country",
   "Parent": "Eastern Africa",
-  "Children": null
+  "Children": null,
+  "comtradeID": 260
 }

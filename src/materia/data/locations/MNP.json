@@ -3,5 +3,6 @@
   "Name": "Northern Mariana Islands",
   "Class": "Country",
   "Parent": "Micronesia",
-  "Children": null
+  "Children": null,
+  "comtradeID": 580
 }

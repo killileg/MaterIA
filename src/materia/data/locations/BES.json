@@ -3,5 +3,6 @@
   "Name": "Bonaire, Sint Eustatius and Saba",
   "Class": "Country",
   "Parent": "Caribbean",
-  "Children": null
+  "Children": null,
+  "comtradeID": 535
 }

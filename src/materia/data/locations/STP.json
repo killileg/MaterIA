@@ -3,5 +3,6 @@
   "Name": "Sao Tome and Principe",
   "Class": "Country",
   "Parent": "Middle Africa",
-  "Children": null
+  "Children": null,
+  "comtradeID": 678
 }

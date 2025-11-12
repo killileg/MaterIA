@@ -3,5 +3,6 @@
   "Name": "Tokelau",
   "Class": "Country",
   "Parent": "Polynesia",
-  "Children": null
+  "Children": null,
+  "comtradeID": 772
 }

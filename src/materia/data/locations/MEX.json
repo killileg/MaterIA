@@ -3,5 +3,6 @@
   "Name": "Mexico",
   "Class": "Country",
   "Parent": "Central America",
-  "Children": null
+  "Children": null,
+  "comtradeID": 484
 }

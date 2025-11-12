@@ -3,5 +3,6 @@
   "Name": "Tunisia",
   "Class": "Country",
   "Parent": "Northern Africa",
-  "Children": null
+  "Children": null,
+  "comtradeID": 788
 }
