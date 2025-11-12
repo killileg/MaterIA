@@ -30,4 +30,4 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          pytest --cov=materia --cov-report=xml
+          pytest --cov=materia_epd --cov-report=xml

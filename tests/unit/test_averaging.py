@@ -1,6 +1,6 @@
 # tests/unit/test_averaging.py
 import pytest
-from materia.metrics import averaging as avg
+from materia_epd.metrics import averaging as avg
 
 
 # ----------------------------- average_impacts ------------------------------

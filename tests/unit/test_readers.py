@@ -1,7 +1,7 @@
 # tests/test_readers.py
 import json
 
-from materia.io.files import (
+from materia_epd.io.files import (
     gen_json_objects,
     gen_xml_objects,
 )

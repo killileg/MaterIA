@@ -1,7 +1,7 @@
 # test_models_full_coverage.py
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from materia.epd import models
+from materia_epd.epd import models
 
 
 def test_models_full_coverage(tmp_path):

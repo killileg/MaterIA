@@ -2,16 +2,18 @@ from unittest.mock import patch, MagicMock
 import sys
 import types
 
-import materia.resources as res
+import materia_epd.resources as res
 
 
 def test_load_json_from_package_success_and_cache():
     res.load_json_from_package.cache_clear()
 
     mock_path = MagicMock()
-    with patch("materia.resources.files") as mock_files, patch(
-        "materia.resources.as_file"
-    ) as mock_as_file, patch("materia.resources.io_files.read_json_file") as mock_read:
+    with patch("materia_epd.resources.files") as mock_files, patch(
+        "materia_epd.resources.as_file"
+    ) as mock_as_file, patch(
+        "materia_epd.resources.io_files.read_json_file"
+    ) as mock_read:
         mock_files.return_value.joinpath.return_value = mock_path
         mock_as_file.return_value.__enter__.return_value = mock_path
         mock_read.return_value = {"ok": 1}
@@ -25,10 +27,10 @@ def test_load_json_from_package_error_when_none():
     res.load_json_from_package.cache_clear()
 
     mock_path = MagicMock()
-    with patch("materia.resources.files") as mock_files, patch(
-        "materia.resources.as_file"
+    with patch("materia_epd.resources.files") as mock_files, patch(
+        "materia_epd.resources.as_file"
     ) as mock_as_file, patch(
-        "materia.resources.io_files.read_json_file", return_value=None
+        "materia_epd.resources.io_files.read_json_file", return_value=None
     ):
         mock_files.return_value.joinpath.return_value = mock_path
         mock_as_file.return_value.__enter__.return_value = mock_path
@@ -40,11 +42,11 @@ def test_load_json_from_package_error_when_none():
 
 
 @patch(
-    "materia.resources.io_files.gen_json_objects",
+    "materia_epd.resources.io_files.gen_json_objects",
     return_value=[("a.json", {"a": 1}), ("b.json", {"b": 2})],
 )
-@patch("materia.resources.as_file")
-@patch("materia.resources.files")
+@patch("materia_epd.resources.as_file")
+@patch("materia_epd.resources.files")
 def test_iter_json_from_package_folder(mock_files, mock_as_file, mock_gen):
     fake_folder = MagicMock()
     mock_files.return_value.joinpath.return_value = fake_folder
@@ -57,7 +59,7 @@ def test_iter_json_from_package_folder(mock_files, mock_as_file, mock_gen):
     mock_gen.assert_called_once_with(fake_folder)
 
 
-@patch("materia.resources.load_json_from_package")
+@patch("materia_epd.resources.load_json_from_package")
 def test_get_regions_mapping(mock_load):
     mock_load.return_value = {"EU": "Europe"}
     result = res.get_regions_mapping()
@@ -65,7 +67,7 @@ def test_get_regions_mapping(mock_load):
     mock_load.assert_called_once_with("regions_mapping.json")
 
 
-@patch("materia.resources.load_json_from_package")
+@patch("materia_epd.resources.load_json_from_package")
 def test_get_indicator_synonyms(mock_load):
     mock_load.return_value = {"GHG": "Greenhouse gases"}
     result = res.get_indicator_synonyms()
@@ -78,12 +80,12 @@ def test_get_market_shares_pkg_resource(tmp_path):
 
     pkg_res = MagicMock()
     pkg_res.is_file.return_value = True
-    with patch("materia.resources.files") as mfiles, patch(
-        "materia.resources.as_file"
+    with patch("materia_epd.resources.files") as mfiles, patch(
+        "materia_epd.resources.as_file"
     ) as mas_file, patch(
-        "materia.resources.io_files.read_json_file", return_value={"pkg": True}
+        "materia_epd.resources.io_files.read_json_file", return_value={"pkg": True}
     ) as mread, patch(
-        "materia.resources.io_files.write_json_file"
+        "materia_epd.resources.io_files.write_json_file"
     ) as mwrite:
         mfiles.return_value.joinpath.return_value = pkg_res
         mas_file.return_value.__enter__.return_value = tmp_path / "pkg.json"
@@ -103,12 +105,12 @@ def test_get_market_shares_user_file(tmp_path):
     user_file.parent.mkdir(parents=True, exist_ok=True)
     user_file.write_text("{}", encoding="utf-8")
 
-    with patch("materia.resources.USER_DATA_DIR", user_root), patch(
-        "materia.resources.files"
-    ) as mfiles, patch("materia.resources.as_file"), patch(
-        "materia.resources.io_files.read_json_file", return_value={"user": True}
+    with patch("materia_epd.resources.USER_DATA_DIR", user_root), patch(
+        "materia_epd.resources.files"
+    ) as mfiles, patch("materia_epd.resources.as_file"), patch(
+        "materia_epd.resources.io_files.read_json_file", return_value={"user": True}
     ) as mread, patch(
-        "materia.resources.io_files.write_json_file"
+        "materia_epd.resources.io_files.write_json_file"
     ) as mwrite:
         mfiles.return_value.joinpath.return_value = pkg_res
 
@@ -124,16 +126,16 @@ def test_get_market_shares_generate_and_store(tmp_path, capsys):
     pkg_res.is_file.return_value = False
     user_root = tmp_path
 
-    market_mod = types.ModuleType("materia.market.market")
+    market_mod = types.ModuleType("materia_epd.market.market")
     market_mod.generate_market = MagicMock(return_value={"gen": True})
-    sys.modules.setdefault("materia", types.ModuleType("materia"))
-    sys.modules.setdefault("materia.market", types.ModuleType("materia.market"))
-    sys.modules["materia.market.market"] = market_mod
+    sys.modules.setdefault("materia_epd", types.ModuleType("materia_epd"))
+    sys.modules.setdefault("materia_epd.market", types.ModuleType("materia_epd.market"))
+    sys.modules["materia_epd.market.market"] = market_mod
 
-    with patch("materia.resources.USER_DATA_DIR", user_root), patch(
-        "materia.resources.files"
-    ) as mfiles, patch("materia.resources.as_file"), patch(
-        "materia.resources.io_files.write_json_file"
+    with patch("materia_epd.resources.USER_DATA_DIR", user_root), patch(
+        "materia_epd.resources.files"
+    ) as mfiles, patch("materia_epd.resources.as_file"), patch(
+        "materia_epd.resources.io_files.write_json_file"
     ) as mwrite:
         mfiles.return_value.joinpath.return_value = pkg_res
 
@@ -151,8 +153,8 @@ def test_get_market_shares_generate_and_store(tmp_path, capsys):
 
 def test_get_comtrade_api_key_from_file(tmp_path):
     api_path = tmp_path / "comtrade_api_key.json"
-    with patch("materia.resources.USER_DATA_DIR", tmp_path), patch(
-        "materia.resources.io_files.read_json_file", return_value={"apikey": "XYZ"}
+    with patch("materia_epd.resources.USER_DATA_DIR", tmp_path), patch(
+        "materia_epd.resources.io_files.read_json_file", return_value={"apikey": "XYZ"}
     ) as mread:
         api_path.write_text("{}", encoding="utf-8")
         assert res.get_comtrade_api_key() == "XYZ"
@@ -161,10 +163,10 @@ def test_get_comtrade_api_key_from_file(tmp_path):
 
 def test_get_comtrade_api_key_prompt_and_store(tmp_path, capsys):
     api_path = tmp_path / "comtrade_api_key.json"
-    with patch("materia.resources.USER_DATA_DIR", tmp_path), patch(
+    with patch("materia_epd.resources.USER_DATA_DIR", tmp_path), patch(
         "builtins.input", return_value="abc123"
-    ), patch("materia.resources.io_files.read_json_file", return_value={}), patch(
-        "materia.resources.io_files.write_json_file"
+    ), patch("materia_epd.resources.io_files.read_json_file", return_value={}), patch(
+        "materia_epd.resources.io_files.write_json_file"
     ) as mwrite:
         key = res.get_comtrade_api_key()
         assert key == "abc123"
@@ -173,16 +175,16 @@ def test_get_comtrade_api_key_prompt_and_store(tmp_path, capsys):
 
 
 def test_get_comtrade_api_key_empty_raises(tmp_path):
-    with patch("materia.resources.USER_DATA_DIR", tmp_path), patch(
+    with patch("materia_epd.resources.USER_DATA_DIR", tmp_path), patch(
         "builtins.input", return_value="  "
-    ), patch("materia.resources.io_files.read_json_file", return_value={}):
+    ), patch("materia_epd.resources.io_files.read_json_file", return_value={}):
         import pytest
 
         with pytest.raises(ValueError, match="API key cannot be empty."):
             res.get_comtrade_api_key()
 
 
-@patch("materia.resources.load_json_from_package")
+@patch("materia_epd.resources.load_json_from_package")
 def test_get_location_data(mock_load):
     mock_load.return_value = {"name": "Luxembourg"}
     result = res.get_location_data("LU")

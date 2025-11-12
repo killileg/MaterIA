@@ -2,9 +2,9 @@ import time
 import pandas as pd
 import comtradeapicall
 
-from materia.core import constants as C
-from materia.resources import get_location_data, get_comtrade_api_key
-from materia.core.constants import TRADE_ROW_REGIONS
+from materia_epd.core import constants as C
+from materia_epd.resources import get_location_data, get_comtrade_api_key
+from materia_epd.core.constants import TRADE_ROW_REGIONS
 
 
 def fetch_trade_data_for_hs_code(loc_code: str, hs_code: str) -> pd.DataFrame | None:

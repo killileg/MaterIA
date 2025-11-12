@@ -3,7 +3,7 @@ from typing import Optional, List, Dict, Tuple
 from enum import Enum
 import numpy as np
 
-from materia.core.constants import (
+from materia_epd.core.constants import (
     NAME_TO_IDX,
     IDX_TO_NAME,
     REL,

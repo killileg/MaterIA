@@ -1,7 +1,7 @@
 # tests/unit/test_errors.py
 import pytest
 
-from materia.core.errors import NoMatchingEPDError
+from materia_epd.core.errors import NoMatchingEPDError
 
 
 def test_no_matching_epd_error_default_message():

@@ -1,6 +1,6 @@
 # tests/unit/test_utils.py
 import pytest
-from materia.core import utils
+from materia_epd.core import utils
 
 
 @pytest.mark.parametrize(

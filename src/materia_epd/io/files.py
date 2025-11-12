@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 import xml.etree.ElementTree as ET
-from materia.core.utils import sort_key
+from materia_epd.core.utils import sort_key
 
 
 def read_json_file(path):

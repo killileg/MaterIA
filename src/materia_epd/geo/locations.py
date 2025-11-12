@@ -1,7 +1,7 @@
 import pycountry
 
-from materia.resources import get_location_data
-from materia.resources import get_regions_mapping
+from materia_epd.resources import get_location_data
+from materia_epd.resources import get_regions_mapping
 
 
 def ilcd_to_iso_location(ilcd_code):

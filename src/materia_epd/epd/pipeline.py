@@ -3,17 +3,17 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-from materia.epd.models import IlcdProcess
-from materia.epd.filters import UUIDFilter, UnitConformityFilter, LocationFilter
-from materia.geo.locations import escalate_location_set
-from materia.metrics.averaging import (
+from materia_epd.epd.models import IlcdProcess
+from materia_epd.epd.filters import UUIDFilter, UnitConformityFilter, LocationFilter
+from materia_epd.geo.locations import escalate_location_set
+from materia_epd.metrics.averaging import (
     average_impacts,
     weighted_averages,
     average_material_properties,
 )
-from materia.core.physics import Material
-from materia.core.errors import NoMatchingEPDError
-from materia.core.constants import MASS_KWARGS
+from materia_epd.core.physics import Material
+from materia_epd.core.errors import NoMatchingEPDError
+from materia_epd.core.constants import MASS_KWARGS
 
 
 def gen_xml_objects(folder_path):

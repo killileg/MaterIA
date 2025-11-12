@@ -1,7 +1,7 @@
 # materia/cli.py
 import click
 from pathlib import Path
-from materia.epd.pipeline import run_materia
+from materia_epd.epd.pipeline import run_materia
 
 
 @click.command()

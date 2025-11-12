@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from pathlib import Path
 
-from materia.core.constants import (
+from materia_epd.core.constants import (
     FLOW_PROPERTY_MAPPING,
     UNIT_QUANTITY_MAPPING,
     UNIT_PROPERTY_MAPPING,
@@ -17,12 +17,12 @@ from materia.core.constants import (
 )
 
 # from materia.io.paths import MATCHES_FOLDER
-from materia.resources import get_market_shares, get_indicator_synonyms
-from materia.core.utils import to_float
-from materia.io.files import read_json_file, write_xml_root, latest_flow_file
-from materia.geo.locations import ilcd_to_iso_location
-from materia.core.physics import Material
-from materia.metrics.normalize import normalize_module_values
+from materia_epd.resources import get_market_shares, get_indicator_synonyms
+from materia_epd.core.utils import to_float
+from materia_epd.io.files import read_json_file, write_xml_root, latest_flow_file
+from materia_epd.geo.locations import ilcd_to_iso_location
+from materia_epd.core.physics import Material
+from materia_epd.metrics.normalize import normalize_module_values
 
 
 @dataclass

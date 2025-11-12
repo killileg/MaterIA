@@ -1,7 +1,7 @@
 import xml.etree.ElementTree as ET
 
-from materia.core.utils import to_float
-from materia.core.constants import EPD_NS, LCIA_AGGREGATE_MAP, LCIA_OUTPUT_MODULES
+from materia_epd.core.utils import to_float
+from materia_epd.core.constants import EPD_NS, LCIA_AGGREGATE_MAP, LCIA_OUTPUT_MODULES
 
 
 def normalize_module_values(

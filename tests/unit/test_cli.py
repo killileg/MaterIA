@@ -1,7 +1,7 @@
 # tests/unit/test_cli.py
 from pathlib import Path
 from click.testing import CliRunner
-from materia import cli
+from materia_epd import cli
 
 
 def _setup_dirs(tmp_path: Path):

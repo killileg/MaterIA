@@ -1,5 +1,5 @@
 from __future__ import annotations
-from materia.epd.models import IlcdProcess
+from materia_epd.epd.models import IlcdProcess
 
 
 class EPDFilter:

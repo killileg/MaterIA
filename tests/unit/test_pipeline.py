@@ -4,7 +4,7 @@ import types
 import xml.etree.ElementTree as ET
 import pytest
 
-from materia.epd import pipeline as pl
+from materia_epd.epd import pipeline as pl
 
 
 # ------------------------------ gen_xml_objects ------------------------------

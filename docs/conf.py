@@ -99,7 +99,7 @@ copyright = "2025, Paul Baustert"
 # If you don’t need the separation provided between version and release,
 # just set them both to the same value.
 try:
-    from materia import __version__ as version
+    from materia_epd import __version__ as version
 except ImportError:
     version = ""
 
