@@ -13,7 +13,8 @@ from materia_epd.metrics.averaging import (
 )
 from materia_epd.core.physics import Material
 from materia_epd.core.errors import NoMatchingEPDError
-from materia_epd.core.constants import MASS_KWARGS
+from materia_epd.core.constants import MASS_KWARGS, ICONS
+from materia_epd.core.utils import print_progress
 
 
 def gen_xml_objects(folder_path):
@@ -71,8 +72,15 @@ def epd_pipeline(process: IlcdProcess, path_to_epd_folder: Path):
     filtered_epds = list(gen_filtered_epds(epds, filters))
 
     if len(filtered_epds) == 0:
-        print(f"{process.uuid}: switching to mass-based functional unit")
+        print_progress(
+            process.uuid,
+            f"switched from {process.dec_unit}-based to mass-based functional unit",
+            ICONS.WARNING,
+            overwrite=False,
+        )
+        print_progress(process.uuid, "processing", ICONS.HOURGLASS, overwrite=True)
         process.material_kwargs = MASS_KWARGS
+        process.dec_unit = "mass"
         filters = [f for f in filters if not isinstance(f, UnitConformityFilter)]
         filters.append(UnitConformityFilter(process.material_kwargs))
         epds = gen_epds(path_to_epd_folder)
@@ -82,6 +90,8 @@ def epd_pipeline(process: IlcdProcess, path_to_epd_folder: Path):
         return None, None
 
     for epd in filtered_epds:
+        # print(epd.uuid)
+        # print(epd.material.to_dict())
         epd.get_lcia_results()
 
     avg_properties = average_material_properties(filtered_epds)
@@ -100,7 +110,6 @@ def epd_pipeline(process: IlcdProcess, path_to_epd_folder: Path):
     }
 
     avg_gwps = weighted_averages(process.market, market_impacts)
-
     return avg_properties, avg_gwps
 
 
@@ -108,17 +117,23 @@ def run_materia(path_to_gen_folder: Path, path_to_epd_folder: Path, output_path:
     for path, root in gen_xml_objects(path_to_gen_folder / "processes"):
         process = IlcdProcess(root=root, path=path)
         process.get_ref_flow()
+        process.get_declared_unit()
         process.get_hs_class()
         process.get_market()
         process.get_matches()
         if process.matches:
-            print(f"{process.uuid}: processing")
+            print_progress(process.uuid, "processing", ICONS.HOURGLASS, overwrite=True)
             avg_properties, avg_gwps = epd_pipeline(
                 process, path_to_epd_folder / "processes"
             )
             if avg_properties is None and avg_gwps is None:
-                print(f"{process.uuid}: cannot be completed\n")
+                print_progress(
+                    process.uuid, "cannot be completed", ICONS.ERROR, overwrite=False
+                )
             else:
                 process.material = Material(**avg_properties)
                 process.write_process(avg_gwps, output_path)
-                print(f"{process.uuid}: completed\n")
+                process.write_flow(avg_properties, output_path)
+                print_progress(
+                    process.uuid, "completed", ICONS.SUCCESS, overwrite=False
+                )
