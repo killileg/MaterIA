@@ -8,10 +8,8 @@ def test_models_full_coverage(tmp_path):
     # -------- Patch minimal constants & helpers (no namespaces) --------
     models.FLOW_PROPERTY_MAPPING = {"kg": "UUID-MASS"}
     models.UNIT_QUANTITY_MAPPING = {"kg": "mass"}
-    models.UNIT_PROPERTY_MAPPING = {"g/cm3": "density"}
+    models.UNIT_PROPERTY_MAPPING = {"g/cm3": "gross_density"}
     models.NS = {}
-    models.FLOW_NS = {}
-    models.EPD_NS = {}
 
     class XP:
         FLOW_PROPERTY = "flowProperty"
@@ -133,7 +131,7 @@ def test_models_full_coverage(tmp_path):
 
     proc.get_ref_flow()
     assert proc.material_kwargs["mass"] == 6.0
-    assert proc.material_kwargs["density"] == 7.8
+    assert proc.material_kwargs["gross_density"] == 7.8
 
     proc.get_lcia_results()
     assert proc.lcia_results == [{"name": "GWP", "values": [10, 20, 30]}]
