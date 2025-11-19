@@ -2,6 +2,7 @@ import re
 import sys
 from pathlib import Path
 from typing import Optional, Tuple
+import os
 
 
 def to_float(value, positive=False):
@@ -42,3 +43,18 @@ def print_progress(uuid: str, status: str, icon: str, overwrite=True):
 
 def qn_uri(uri: str, name: str) -> str:
     return f"{{{uri}}}{name}"
+
+
+def copy_except_folders(src_dir, dest_dir, exclude_folders):
+    for root, dirs, files in os.walk(src_dir):
+        dirs[:] = [d for d in dirs if d not in exclude_folders]
+
+        rel_path = os.path.relpath(root, src_dir)
+        target_root = os.path.join(dest_dir, rel_path)
+        os.makedirs(target_root, exist_ok=True)
+
+        for file in files:
+            src_file = os.path.join(root, file)
+            dest_file = os.path.join(target_root, file)
+            with open(src_file, "rb") as f_src, open(dest_file, "wb") as f_dest:
+                f_dest.write(f_src.read())

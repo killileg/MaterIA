@@ -14,7 +14,7 @@ from materia_epd.metrics.averaging import (
 from materia_epd.core.physics import Material
 from materia_epd.core.errors import NoMatchingEPDError
 from materia_epd.core.constants import MASS_KWARGS, ICONS
-from materia_epd.core.utils import print_progress
+from materia_epd.core.utils import print_progress, copy_except_folders
 
 
 def gen_xml_objects(folder_path):
@@ -114,6 +114,9 @@ def epd_pipeline(process: IlcdProcess, path_to_epd_folder: Path):
 
 
 def run_materia(path_to_gen_folder: Path, path_to_epd_folder: Path, output_path: Path):
+    exclude = ["processes", "flows"]
+    copy_except_folders(path_to_gen_folder, output_path, exclude)
+
     for path, root in gen_xml_objects(path_to_gen_folder / "processes"):
         process = IlcdProcess(root=root, path=path)
         process.get_ref_flow()
