@@ -1,7 +1,7 @@
 import xml.etree.ElementTree as ET
 
 from materia_epd.core.utils import to_float
-from materia_epd.core.constants import EPD_NS, LCIA_AGGREGATE_MAP, LCIA_OUTPUT_MODULES
+from materia_epd.core.constants import NS, LCIA_AGGREGATE_MAP, LCIA_OUTPUT_MODULES
 
 
 def normalize_module_values(
@@ -9,7 +9,7 @@ def normalize_module_values(
 ) -> dict:
     """Normalizes and aggregates module values based on constants."""
     raw_values = {
-        elem.attrib.get(f"{{{EPD_NS['epd']}}}module"): (
+        elem.attrib.get(f"{{{NS['epd']}}}module"): (
             (lambda v: v * scaling_factor if v is not None else None)(
                 to_float(elem.text)
             )

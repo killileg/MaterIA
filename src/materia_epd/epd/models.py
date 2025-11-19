@@ -9,19 +9,17 @@ from materia_epd.core.constants import (
     FLOW_PROPERTY_MAPPING,
     UNIT_QUANTITY_MAPPING,
     UNIT_PROPERTY_MAPPING,
+    ILCD_QUANTITY_LABELS,
     ATTR,
     XP,
     NS,
-    FLOW_NS,
-    EPD_NS,
 )
 
-# from materia.io.paths import MATCHES_FOLDER
 from materia_epd.resources import get_market_shares, get_indicator_synonyms
-from materia_epd.core.utils import to_float
+from materia_epd.core.utils import to_float, qn_uri
 from materia_epd.io.files import read_json_file, write_xml_root, latest_flow_file
 from materia_epd.geo.locations import ilcd_to_iso_location
-from materia_epd.core.physics import Material
+from materia_epd.core.physics import Material, check_properties_ranges
 from materia_epd.metrics.normalize import normalize_module_values
 
 
@@ -30,14 +28,19 @@ class IlcdFlow:
     root: ET.Element
 
     def __post_init__(self):
+        self._get_uuid()
         self._get_units()
         self._get_props()
 
+    def _get_uuid(self) -> str | None:
+        node = self.root.find(XP.UUID, NS)
+        self.uuid = node.text.strip() if (node is not None and node.text) else None
+
     def _get_units(self):
         self.units = []
-        for prop in self.root.findall(XP.FLOW_PROPERTY, FLOW_NS):
-            mean_value = prop.findtext(XP.MEAN_VALUE, namespaces=FLOW_NS)
-            ref = prop.find(XP.REF_TO_FLOW_PROP, FLOW_NS)
+        for prop in self.root.findall(XP.FLOW_PROPERTY, NS):
+            mean_value = prop.findtext(XP.MEAN_VALUE, namespaces=NS)
+            ref = prop.find(XP.REF_TO_FLOW_PROP, NS)
 
             if mean_value and ref is not None:
                 amount = mean_value
@@ -45,7 +48,7 @@ class IlcdFlow:
                 name = next(
                     (
                         desc.text
-                        for desc in ref.findall(XP.SHORT_DESC, FLOW_NS)
+                        for desc in ref.findall(XP.SHORT_DESC, NS)
                         if desc.attrib.get(ATTR.LANG) == "en"
                     ),
                     None,
@@ -69,22 +72,21 @@ class IlcdFlow:
 
     def _get_props(self):
         self.props = []
-        matml = self.root.find(XP.MATML_DOC, FLOW_NS)
+        matml = self.root.find(XP.MATML_DOC, NS)
 
         if matml is None:
             return
 
         amounts = {
-            pd.attrib.get(ATTR.PROPERTY): pd.findtext(XP.PROP_DATA, namespaces=FLOW_NS)
-            for pd in matml.findall(XP.PROPERTY_DATA, FLOW_NS)
-            if pd.attrib.get(ATTR.PROPERTY)
-            and pd.find(XP.PROP_DATA, FLOW_NS) is not None
+            pd.attrib.get(ATTR.PROPERTY): pd.findtext(XP.PROP_DATA, namespaces=NS)
+            for pd in matml.findall(XP.PROPERTY_DATA, NS)
+            if pd.attrib.get(ATTR.PROPERTY) and pd.find(XP.PROP_DATA, NS) is not None
         }
 
-        for detail in matml.findall(XP.PROPERTY_DETAILS, FLOW_NS):
+        for detail in matml.findall(XP.PROPERTY_DETAILS, NS):
             prop_id = detail.attrib.get(ATTR.ID)
-            name = detail.findtext(XP.PROP_NAME, namespaces=FLOW_NS)
-            unit = detail.find(XP.PROP_UNITS, FLOW_NS)
+            name = detail.findtext(XP.PROP_NAME, namespaces=NS)
+            unit = detail.find(XP.PROP_UNITS, NS)
             unit_name = unit.attrib.get(ATTR.NAME) if unit is not None else None
             amount = amounts.get(prop_id)
 
@@ -123,7 +125,6 @@ class IlcdProcess:
             ATTR.REF_OBJECT_ID
         )
         flows_folder = self.path.parent.parent / "flows"
-        # flow_file = flows_folder / f"{ref_flow_uuid}.xml"
         flow_file = latest_flow_file(flows_folder, ref_flow_uuid)
 
         self.ref_flow = IlcdFlow(root=ET.parse(flow_file).getroot())
@@ -146,23 +147,42 @@ class IlcdProcess:
             if field and isinstance(p.get("Amount"), (int, float)):
                 kwargs[field] = p["Amount"]
 
+        kwargs = check_properties_ranges(self.uuid, kwargs)
+
         self.material_kwargs = kwargs
         self.material = Material(**kwargs)
+
+    def get_declared_unit(self) -> str | None:
+        ref_id = self.ref_flow.root.find(XP.REF_TO_REF_FLOW_PROP, NS).text
+
+        flow_props = self.ref_flow.root.find(XP.FLOW_PROPERTIES, NS)
+        for fp in flow_props.findall(XP.FLOW_PROPERTY, NS):
+            if fp.get(ATTR.INTERNAL_ID) == ref_id:
+                ref_fp = fp
+                break
+
+        ref = ref_fp.find(XP.REF_TO_FLOW_PROP, NS)
+        uuid = ref.get(ATTR.REF_OBJECT_ID)
+
+        uuid_to_unit = {v: k for k, v in FLOW_PROPERTY_MAPPING.items()}
+        unit_symbol = uuid_to_unit.get(uuid)
+
+        self.dec_unit = UNIT_QUANTITY_MAPPING.get(unit_symbol)
 
     def get_lcia_results(self) -> list[dict]:
         results = []
 
-        for lcia_result in self.root.findall(XP.LCIA_RESULT, EPD_NS):
-            ref_method = lcia_result.find(XP.REF_TO_LCIA_METHOD, EPD_NS)
+        for lcia_result in self.root.findall(XP.LCIA_RESULT, NS):
+            ref_method = lcia_result.find(XP.REF_TO_LCIA_METHOD, NS)
             name = "Unknown"
 
             if ref_method is not None:
-                for sd in ref_method.findall(XP.SHORT_DESC, EPD_NS):
+                for sd in ref_method.findall(XP.SHORT_DESC, NS):
                     if sd.attrib.get(ATTR.LANG) == "en":
                         name = sd.text.strip() if sd.text else "Unknown"
                         break
 
-            amount_elems = lcia_result.findall(XP.AMOUNT, EPD_NS)
+            amount_elems = lcia_result.findall(XP.AMOUNT, NS)
             values = normalize_module_values(
                 amount_elems, scaling_factor=self.material.scaling_factor
             )
@@ -207,14 +227,12 @@ class IlcdProcess:
             next(
                 (
                     sd.text.strip()
-                    for sd in r.findall(
-                        f"{XP.REF_TO_LCIA_METHOD}/{XP.SHORT_DESC}", EPD_NS
-                    )
+                    for sd in r.findall(f"{XP.REF_TO_LCIA_METHOD}/{XP.SHORT_DESC}", NS)
                     if sd.attrib.get(ATTR.LANG) == "en"
                 ),
                 "Unknown",
             ): r
-            for r in self.root.findall(XP.LCIA_RESULT, EPD_NS)
+            for r in self.root.findall(XP.LCIA_RESULT, NS)
         }
 
         for ind, stages in results.items():
@@ -223,7 +241,7 @@ class IlcdProcess:
                 continue
 
             by_module = {}
-            for el in r.findall(XP.AMOUNT, EPD_NS):
+            for el in r.findall(XP.AMOUNT, NS):
                 mod = (
                     _get_attr_local(el, "module")
                     or _get_attr_local(el, "phase")
@@ -240,3 +258,106 @@ class IlcdProcess:
 
         file_path = out_path / "processes" / f"{self.uuid}.xml"
         return write_xml_root(self.root, file_path)
+
+    def write_flow(self, kwargs: dict, out_path: Path) -> None:
+        def fmt(v):
+            return f"{float(v):.6f}".rstrip("0").rstrip(".")
+
+        matml = self.ref_flow.root.find(XP.MATML_DOC, NS)
+        for ch in list(matml):
+            matml.remove(ch)
+
+        flow_props = self.ref_flow.root.find(XP.FLOW_PROPERTIES, NS)
+        for ch in list(flow_props):
+            flow_props.remove(ch)
+
+        material = ET.SubElement(matml, qn_uri(NS.get("mat"), "Material"))
+        bulk = ET.SubElement(material, qn_uri(NS.get("mat"), "BulkDetails"))
+        meta = ET.SubElement(matml, qn_uri(NS.get("mat"), "Metadata"))
+
+        for prop, value in kwargs.items():
+            unit = {v: k for k, v in UNIT_PROPERTY_MAPPING.items()}.get(prop)
+            if unit is None or value is None:
+                continue
+
+            pd = ET.SubElement(
+                bulk,
+                qn_uri(NS.get("mat"), "PropertyData"),
+                {ATTR.PROPERTY: f"pr_{prop}"},
+            )
+            ET.SubElement(
+                pd, qn_uri(NS.get("mat"), "Data"), {"format": "float"}
+            ).text = fmt(value)
+
+            det = ET.SubElement(
+                meta, qn_uri(NS.get("mat"), "PropertyDetails"), {ATTR.ID: f"pr_{prop}"}
+            )
+            ET.SubElement(det, qn_uri(NS.get("mat"), "Name")).text = prop.replace(
+                "_", " "
+            )
+            units = ET.SubElement(
+                det,
+                qn_uri(NS.get("mat"), "Units"),
+                {ATTR.NAME: unit, "description": unit},
+            )
+            if "/" in unit:
+                num, den = unit.split("/", 1)
+                u1 = ET.SubElement(units, qn_uri(NS.get("mat"), "Unit"))
+                ET.SubElement(u1, qn_uri(NS.get("mat"), "Name")).text = num.strip()
+                base = den.strip().split("^")[0]
+                power = -int(den.strip().split("^")[1]) if "^" in den else -1
+                u2 = ET.SubElement(
+                    units, qn_uri(NS.get("mat"), "Unit"), {"power": str(power)}
+                )
+                ET.SubElement(u2, qn_uri(NS.get("mat"), "Name")).text = base
+            else:
+                u = ET.SubElement(units, qn_uri(NS.get("mat"), "Unit"))
+                ET.SubElement(u, qn_uri(NS.get("mat"), "Name")).text = unit
+
+        quantity_list = [
+            {
+                "property": k,
+                "unit": u,
+                "value": v,
+                "uuid": FLOW_PROPERTY_MAPPING.get(u),
+            }
+            for k, v in kwargs.items()
+            if (u := {v: k for k, v in UNIT_QUANTITY_MAPPING.items()}.get(k))
+            is not None
+            and v is not None
+        ]
+
+        quantity_list = [
+            item for item in quantity_list if item["property"] == self.dec_unit
+        ] + [item for item in quantity_list if item["property"] != self.dec_unit]
+
+        self.ref_flow.root.find(XP.REF_TO_REF_FLOW_PROP, NS).text = "0"
+
+        for idx, item in enumerate(quantity_list):
+            fp = ET.SubElement(
+                flow_props,
+                qn_uri(NS.get("flow"), "flowProperty"),
+                {"dataSetInternalID": str(idx)},
+            )
+            ref = ET.SubElement(
+                fp,
+                qn_uri(NS.get("flow"), "referenceToFlowPropertyDataSet"),
+                {
+                    ATTR.REF_OBJECT_ID: item["uuid"],
+                    "version": "00.00.000",  # TODO: make dynamic
+                    "type": "flow property data set",
+                    "uri": f"../flowproperties/{item['uuid']}.xml",
+                },
+            )
+            sd = ET.SubElement(
+                ref, qn_uri(NS.get("common"), "shortDescription"), {ATTR.LANG: "en"}
+            )
+            sd.text = ILCD_QUANTITY_LABELS.get(
+                item["property"], item["property"].title()
+            )
+            ET.SubElement(fp, qn_uri(NS.get("flow"), "meanValue")).text = fmt(
+                item["value"]
+            )
+
+        file_path = out_path / "flows" / f"{self.ref_flow.uuid}.xml"
+        return write_xml_root(self.ref_flow.root, file_path)

@@ -8,7 +8,7 @@ from materia_epd.metrics import normalize as norm
 @pytest.fixture(autouse=True)
 def patch_constants(monkeypatch):
     # Minimal constants so we can craft tiny XMLs
-    monkeypatch.setattr(norm, "EPD_NS", {"epd": "urn:test:epd"}, raising=True)
+    monkeypatch.setattr(norm, "NS", {"epd": "urn:test:epd"}, raising=True)
     monkeypatch.setattr(
         norm,
         "LCIA_OUTPUT_MODULES",
@@ -26,7 +26,7 @@ def patch_constants(monkeypatch):
 def _amount(module, text):
     """Build an <amount> element with namespaced @epd:module attr."""
     el = ET.Element("amount")
-    el.attrib[f"{{{norm.EPD_NS['epd']}}}module"] = module
+    el.attrib[f"{{{norm.NS['epd']}}}module"] = module
     el.text = text
     return el
 

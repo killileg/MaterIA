@@ -228,6 +228,9 @@ def test_run_materia_executes_pipeline_and_writes(monkeypatch, tmp_path: Path):
         def get_ref_flow(self):
             pass
 
+        def get_declared_unit(self):
+            pass
+
         def get_hs_class(self):
             pass
 
@@ -235,6 +238,9 @@ def test_run_materia_executes_pipeline_and_writes(monkeypatch, tmp_path: Path):
             pass
 
         def get_matches(self):
+            pass
+
+        def write_flow(self, avg_properties, output_path):
             pass
 
         def write_process(self, gwps, output_path):

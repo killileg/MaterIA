@@ -36,7 +36,7 @@ Requires Python 3.10+.
 Here’s a minimal example:
 
 ```bash
-python -m materia <generic_processes_dir> <epd_processes_dir> -o <output_dir>
+python -m materia_epd <generic_processes_dir> <epd_processes_dir> -o <output_dir>
 ```
 
 Note that you need to point to the \root\provesses folders and need to provide a \matches folder in the generic data folder to link generic products and EPDs. The .json files are named after corresponding generic products and should be strucured as follows:

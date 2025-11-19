@@ -8,9 +8,9 @@ from materia_epd.core import constants as c
 def test_ns_and_epd_ns_contain_expected_keys():
     assert "proc" in c.NS
     assert "common" in c.NS
-    assert "epd" in c.EPD_NS
-    assert c.EPD_NS["epd"].startswith("http")
-    assert "flow" in c.FLOW_NS
+    assert "epd" in c.NS
+    assert c.NS["epd"].startswith("http")
+    assert "flow" in c.NS
 
 
 # ----------------------------- XP class -------------------------------------

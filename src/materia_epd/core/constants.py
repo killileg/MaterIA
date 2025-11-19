@@ -1,5 +1,14 @@
 from typing import List, Tuple
 
+# ----------------------------- ICONS ----------------------------------------
+
+
+class ICONS:
+    HOURGLASS = "⏳"
+    SUCCESS = "✅"
+    WARNING = "⚠️"
+    ERROR = "❌"
+
 
 # ----------------------------- TRADE ----------------------------------------
 
@@ -12,22 +21,12 @@ TRADE_ROW_REGIONS = {"E19", "S19", "E27", "OED", "EUU", "EEC", "ROW", "_X "}
 
 
 NS = {
+    "common": "http://lca.jrc.it/ILCD/Common",
     "proc": "http://lca.jrc.it/ILCD/Process",
-    "common": "http://lca.jrc.it/ILCD/Common",
-}
-
-EPD_NS = {
-    "common": "http://lca.jrc.it/ILCD/Common",
-    "c": "http://lca.jrc.it/ILCD/Common",
+    "flow": "http://lca.jrc.it/ILCD/Flow",
     "epd": "http://www.iai.kit.edu/EPD/2013",
     "epd2": "http://www.indata.network/EPD/2019",
-    "proc": "http://lca.jrc.it/ILCD/Process",
     "xml": "http://www.w3.org/XML/1998/namespace",
-}
-
-FLOW_NS = {
-    "flow": "http://lca.jrc.it/ILCD/Flow",
-    "common": "http://lca.jrc.it/ILCD/Common",
     "mat": "http://www.matml.org/",
 }
 
@@ -53,9 +52,11 @@ class XP:
     AMOUNT = ".//epd:amount"
 
     # Flow-related
+    FLOW_PROPERTIES = ".//flow:flowProperties"
     FLOW_PROPERTY = ".//flow:flowProperty"
     MEAN_VALUE = "flow:meanValue"
     REF_TO_FLOW_PROP = "flow:referenceToFlowPropertyDataSet"
+    REF_TO_REF_FLOW_PROP = ".//flow:referenceToReferenceFlowProperty"
 
     # MatML-related
     MATML_DOC = ".//mat:MatML_Doc"
@@ -76,6 +77,7 @@ class ATTR:
     LOCATION = "location"
     UNIT = "Unit"
     AMOUNT = "Amount"
+    INTERNAL_ID = "dataSetInternalID"
 
 
 MODULES = ["A1-A3", "C1", "C2", "C3", "C4", "D"]
@@ -103,6 +105,14 @@ UNIT_PROPERTY_MAPPING = {
     "m": "layer_thickness",
     "m^2": "cross_sectional_area",
     "kg": "weight_per_piece",
+}
+
+ILCD_QUANTITY_LABELS = {
+    "mass": "Mass",
+    "volume": "Volume",
+    "surface": "Area",
+    "unit_count": "Unit",
+    "length": "Length",
 }
 
 UNIT_GROUP_MAPPING = {
@@ -146,6 +156,24 @@ MASS_KWARGS = {
     "gross_density": None,
     "grammage": None,
     "volume": None,
+}
+
+REASONABLE_RANGES = {
+    "surface": (0.001, 1000.0),
+    "mass": (0.001, 10000.0),
+    "unit_count": (1, 1),
+    "weight_per_piece": (0.001, 1000.0),
+    "length": (0.001, 1000.0),
+    "layer_thickness": (0.000001, 0.1),
+    "linear_density": (0.001, 100.0),
+    "cross_sectional_area": (0.000001, 10.0),
+    "gross_density": (1.0, 20000.0),
+    "grammage": (0.05, 30.0),
+    "volume": (0.000001, 100.0),
+}
+
+POTENTIAL_CORRECTIONS = {
+    "grammage": {"from": "g/m^2", "to": "kg/m^2", "factor": 0.001},
 }
 
 ACCEPTED_RESCALINGS = [

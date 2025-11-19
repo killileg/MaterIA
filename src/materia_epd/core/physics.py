@@ -13,7 +13,12 @@ from materia_epd.core.constants import (
     _TOL_REL,
     _REL_DEC,
     ACCEPTED_RESCALINGS,
+    REASONABLE_RANGES,
+    POTENTIAL_CORRECTIONS,
+    ICONS,
 )
+
+from materia_epd.core.utils import print_progress
 
 
 class RuleMode(str, Enum):
@@ -56,6 +61,32 @@ def _is_close(a: float, b: float) -> bool:
 
 def _round(value: float, decimals: int = _REL_DEC) -> float:
     return round(value, decimals)
+
+
+def check_properties_ranges(uuid: str, kwargs: Dict[str, Optional[float]]) -> None:
+    for prop, value in kwargs.items():
+        min_val, max_val = REASONABLE_RANGES[prop]
+        if value is None:
+            continue
+        if not (min_val <= value <= max_val):
+            print_progress(
+                uuid,
+                f"{prop} {value} is outside the expected range ({min_val}–{max_val}).",
+                ICONS.WARNING,
+                overwrite=False,
+            )
+            if prop in POTENTIAL_CORRECTIONS.keys():
+                value = value * POTENTIAL_CORRECTIONS[prop]["factor"]
+                if min_val <= value <= max_val:
+                    kwargs[prop] = value
+                    print_progress(
+                        uuid,
+                        f"{prop} converted from {POTENTIAL_CORRECTIONS[prop]['from']} "
+                        f"to {POTENTIAL_CORRECTIONS[prop]['to']}: {value}.",
+                        ICONS.WARNING,
+                        overwrite=False,
+                    )
+    return kwargs
 
 
 def _eval_rule(vals: List[Optional[float]], ru: Rule) -> Optional[float]:
